@@ -115,7 +115,7 @@ help :
 
 open : # Usage example: `make open F=hello W=vs`
 	@$(SUB_DIR)/ezc/script/ezc_open.sh \
-		$(SRC_DIR) $(INC_DIR) $(PRJ_DIR) $(F) $(W)
+		$(SRC_DIR) $(INC_DIR) $(F) $(W)
 
 $(DOC_DIR) :
 	mkdir -p $(DOC_DIR)

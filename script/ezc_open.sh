@@ -35,11 +35,10 @@
 # 4: file name (without extension)
 # 5: window opening mode
 
-F="${4}.*"
-W="${5}"
+F="${3}.*"
+W="${4}"
 A=`find ${1} -name $F`
 B=`find ${2} -name $F`
-C=`find ${3} -name $F`
 
 if [ "$W" == "t" ] || [ "$W" == "tb" ] || [ "$W" == "tab" ]; then
     W="-p";
@@ -49,4 +48,4 @@ else
     W="-O";
 fi
 
-vim $W $A $B $C
+vim $W $A $B
