@@ -88,7 +88,7 @@ init :
 	@rm -rf $(SUB_DIR)/m.css
 	@rm -rf .git/modules/$(SUB_DIR)/ezc
 	@rm -rf .git/modules/$(SUB_DIR)/m.css
-	@git rm -r --cached $(SUB_DIR)
+	@git rm -r --cached --ignore-unmatch $(SUB_DIR)
 	git submodule add -f https://github.com/ezaf/ezc.git $(SUB_DIR)/ezc
 	git submodule add -f https://github.com/mosra/m.css.git $(SUB_DIR)/m.css
 	@rm -f script/ezc.mk
