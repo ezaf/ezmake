@@ -1,8 +1,7 @@
-/** @file       hello.h
- *  @brief      A simple demonstration of how to document and include header
- *              files in EzC.
- *  
- *  <!---------
+/** @file       main.c
+ *  @brief      Example main function for EzC.
+ *
+ *  <!-------------------------------------------------------------------------
  *  Copyright (c) 2018 Kirk Lange
  *  
  *  This software is provided 'as-is', without any express or implied
@@ -20,31 +19,16 @@
  *  2. Altered source versions must be plainly marked as such, and must not be
  *     misrepresented as being the original software.
  *  3. This notice may not be removed or altered from any source distribution.
- *  ---------->
+ *  -------------------------------------------------------------------------->
  */
 
-#ifndef HELLO_H
-#define HELLO_H
+#include "EzHello/ezhello.h"
 
-#ifdef __cplusplus
-extern "C"
+
+
+int main(int argc, char *argv[])
 {
-#endif
-
-
-
-/**
- *  @brief      Say hello to whoever you want!
- *  @param      subject    String indicating to whom we are saying hello to.
- *  @return     void
- *  @details    Concatenates `"Hello "`, the `subject` parameter, and `"!\n"`.
- */
-void print_hello_to(const char *subject);
-
-
-
-#ifdef __cplusplus
+    ezhello_printHelloTo("EzC developers");
+    return 0;
 }
-#endif
 
-#endif /* HELLO_H */

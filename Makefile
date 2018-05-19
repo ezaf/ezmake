@@ -25,12 +25,12 @@
 ###############################################################################
 
 # Directory within src/ of the project or test that you want to build
-MAIN_SUBDIR = demo
+MAIN_SUBDIR = test_hello
 
 # Directory within src/ for which all *.c files will be added to the build.
 # The difference between this and `MAIN_SUBDIR` is that this is intended to
 #   indicate where the API source files are located.
-SRC_SUBDIRS = hello
+SRC_SUBDIRS = EzHello
 
 # Needed submodule include directories within ext/
 SUB_INC_DIRS =

@@ -1,6 +1,8 @@
-/*  hello.c
- *
- *  <!---------
+/** @file       ezhello.h
+ *  @brief      A simple demonstration of how to write, document and include
+ *              header files in EzC.
+ *  
+ *  <!-------------------------------------------------------------------------
  *  Copyright (c) 2018 Kirk Lange
  *  
  *  This software is provided 'as-is', without any express or implied
@@ -18,17 +20,31 @@
  *  2. Altered source versions must be plainly marked as such, and must not be
  *     misrepresented as being the original software.
  *  3. This notice may not be removed or altered from any source distribution.
- *  ---------->
+ *  -------------------------------------------------------------------------->
  */
 
-#include "hello/hello.h"
+#ifndef EZHELLO_H
+#define EZHELLO_H
 
-#include <stdio.h>
-#include <string.h>
-
-
-
-void print_hello_to(const char *subject)
+#ifdef __cplusplus
+extern "C"
 {
-    printf("Hello %s!\n", subject);
+#endif
+
+
+
+/**
+ *  @brief      Say hello to whoever you want!
+ *  @param      subject    String indicating to whom we are saying hello to.
+ *  @return     `void`, what do you expect?
+ *  @details    Concatenates `"Hello "`, the `subject` parameter, and `"!\n"`.
+ */
+void ezhello_printHelloTo(const char *subject);
+
+
+
+#ifdef __cplusplus
 }
+#endif
+
+#endif /* EZHELLO_H */

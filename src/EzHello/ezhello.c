@@ -1,7 +1,6 @@
-/** @file       main.c
- *  @brief      Example main function for EzC.
+/*  ezhello.c
  *
- *  <!---------
+ *  <!-------------------------------------------------------------------------
  *  Copyright (c) 2018 Kirk Lange
  *  
  *  This software is provided 'as-is', without any express or implied
@@ -19,16 +18,16 @@
  *  2. Altered source versions must be plainly marked as such, and must not be
  *     misrepresented as being the original software.
  *  3. This notice may not be removed or altered from any source distribution.
- *  ---------->
+ *  -------------------------------------------------------------------------->
  */
 
-#include "hello/hello.h"
+#include "EzHello/ezhello.h"
+
+#include <stdio.h>
 
 
 
-int main(int argc, char *argv[])
+void ezhello_printHelloTo(const char *subject)
 {
-    print_hello_to("EzC developers");
-    return 0;
+    printf("Hello %s!\n", subject);
 }
-
