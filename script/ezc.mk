@@ -47,10 +47,11 @@ SRC_DIR = $(ROOT)/src
 
 
 # Add source directory to source file names
-OBJS = $(foreach OBJ,$(EXT_SRC_FILES),$(SUB_DIR)/$(OBJ)) \
-	   $(foreach DIR,$(EXT_SUBDIRS),$(wildcard $(SUB_DIR)/$(DIR)/*.c)) \
-	   $(foreach DIR,$(SRC_SUBDIRS),$(wildcard $(SRC_DIR)/$(DIR)/*.c)) \
-	   $(foreach DIR,$(MAIN_SUBDIR),$(wildcard $(PRJ_DIR)/$(DIR)/*.c)) \
+OBJS = $(foreach OBJ,$(SUB_SRC_FILES),$(SUB_DIR)/$(OBJ)) \
+	   $(foreach EXT,$(SRC_EXTS), \
+	   $(foreach DIR,$(SUB_SRC_DIRS),$(wildcard $(SUB_DIR)/$(DIR)/*.$(EXT))) \
+	   $(foreach DIR,$(SRC_SUBDIRS),$(wildcard $(SRC_DIR)/$(DIR)/*.$(EXT))) \
+	   $(foreach DIR,$(MAIN_SUBDIR),$(wildcard $(PRJ_DIR)/$(DIR)/*.$(EXT))) ) \
 
 # Include and library flags
 INC = -I$(INC_DIR) $(foreach DIR,$(EXT_INC_DIRS),-I$(SUB_DIR)/$(DIR)) \
@@ -100,8 +101,8 @@ MAKE = make --no-print-directory
 
 
 
-.PHONY : all $(BLD_DIR) run dirs deps $(SUB_DIR) $(DOC_DIR) rtd
-.PHONY : compile help clean clean-$(BLD_DIR) clean-$(SUB_DIR) open
+.PHONY : all $(BLD_DIR) run dirs deps $(SUB_DIR) $(DOC_DIR) rtd compile help
+.PHONY : open clean clean-$(BLD_DIR) clean-$(DOC_DIR) clean-$(SUB_DIR)
 
 all :
 	$(MAKE) $(DOC_DIR)
