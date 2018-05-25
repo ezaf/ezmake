@@ -58,7 +58,10 @@ CC = gcc
 CF = -std=c89 -pedantic -O3 -w
 LF =
 
-# OFTEN NECESSARY FOR WINDOWS!!!
+# The possible source file extensions
+SRC_EXTS = c cpp
+
+# May be necessary if building on Windows without MSYS2.
 # Outside include and lib directories for `gcc` such as the paths to the SDL2
 # Change the path to match where you have installed the stuff on your machine
 # Commented out are examples for luac
@@ -73,6 +76,7 @@ GCC_L_DIRS_LIN = #$$HOME/lib
 ROOT = .
 
 # Submodule directory
+# WARNING: Changing this may cause a lot of headache!
 SUB_DIR = $(ROOT)/sub
 
 
