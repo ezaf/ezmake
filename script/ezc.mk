@@ -88,6 +88,18 @@ endif
 
 
 
+ifeq ($(CC), emcc)
+	COMPILE = $(CC) $(OBJS) $(INC) $(CF) $(LF) \
+			  -o $(BLD_DIR)/$(OUT)/$(OUT).html
+	RUN = $(OPEN) $(BLD_DIR)/$(OUT)/$(OUT).html
+else
+	COMPILE = $(CC) $(OBJS) $(INC) $(LIB) $(CF) $(LF) \
+			  -o $(BLD_DIR)/$(OUT)/$(OUT)
+	RUN = $(BLD_DIR)/$(OUT)/$(OUT)
+endif
+
+
+
 # TODO: version check python and doxygen
 #ifeq(, $(shell where python3))
 #endif
@@ -153,11 +165,11 @@ $(SUB_DIR) :
 	git submodule update
 
 compile : $(OBJS)
-	$(CC) $(OBJS) $(INC) $(LIB) $(CF) $(LF) -o $(BLD_DIR)/$(OUT)/$(OUT)
+	$(COMPILE)
 
 run :
 	@echo
-	$(BLD_DIR)/$(OUT)/$(OUT)
+	$(RUN)
 	@echo
 
 clean :

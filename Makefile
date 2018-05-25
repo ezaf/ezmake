@@ -54,9 +54,17 @@ OUT = $(MAIN_SUBDIR)
 
 # Compiler and linker settings
 # In many cases the order in which your `-l`s appear matters!
-CC = gcc
-CF = -std=c89 -pedantic -O3 -w
-LF =
+# The gcc and emcc options can easily be toggled by changing the ifeq check
+# WARNING: EzC's emcc mode only supports libc, libc++, and SDL2 right now
+ifeq (1,1)
+	CC = gcc
+	CF = -std=c11 -O3 -Werror
+	LF =
+else
+	CC = emcc
+	CF = -O3
+	LF = -s USE_SDL=2 -s USE_SDL_IMAGE=2 -s USE_SDL_TTF=2
+endif
 
 # The possible source file extensions
 SRC_EXTS = c cpp
