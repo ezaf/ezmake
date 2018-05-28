@@ -78,6 +78,7 @@ endif
 SRC_EXTS = c #cpp
 
 # Location(s) where EzC should look for `include` and `lib` subdirectories
+# No biggie if the directory doesn't exist.
 PREFIXES = /usr /mingw64 /mingw32 $$HOME
 
 # Project root directory
