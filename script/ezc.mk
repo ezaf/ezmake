@@ -51,34 +51,34 @@ OBJS = $(foreach OBJ,$(SUB_SRC_FILES),$(SUB_DIR)/$(OBJ)) \
 	   $(foreach EXT,$(SRC_EXTS), \
 	   $(foreach DIR,$(SUB_SRC_DIRS),$(wildcard $(SUB_DIR)/$(DIR)/*.$(EXT))) \
 	   $(foreach DIR,$(SRC_SUBDIRS),$(wildcard $(SRC_DIR)/$(DIR)/*.$(EXT))) \
-	   $(foreach DIR,$(MAIN_SUBDIR),$(wildcard $(PRJ_DIR)/$(DIR)/*.$(EXT))) ) \
+	   $(foreach DIR,$(MAIN_SUBDIRS),$(wildcard $(PRJ_DIR)/$(DIR)/*.$(EXT))) )
 
 # Include and library flags
 INC = -I$(INC_DIR) $(foreach DIR,$(EXT_INC_DIRS),-I$(SUB_DIR)/$(DIR)) \
+	  $(foreach DIR,$(PREFIXES),-I$(DIR)/include) \
 	  -I$(PRJ_DIR)/$(MAIN_SUBDIR)
-LIB =
+LIB = $(foreach DIR,$(PREFIXES),-L$(DIR)/lib)
 
-# Find what OS we're on so we can better configure all the compiler options
+# Package flags
+PF = $(foreach PKG,$(PKGS),`pkg-config --cflags --libs \
+	 --silence-errors $(PKG)` )
+
+# Find what OS we're on so we can better configure all the compiler options.
+# All compiler flags can be customized on a per-platform basis.
 # Linux->"Linux" | MacOS->"Darwin" | Windows->"*_NT-*"
-
-# All compiler flags can be customized on a per-platform basis
 ifneq (, $(shell uname -s | grep -E _NT))
 	CULT = windows
 	# Uncomment to remove console window
-	#CF += -Wl,-subsystem,windows
+	CF += #-Wl,-subsystem,windows
 	# -lmingw32 must come before everything else
 	LF_TEMP := $(LF)
 	LF = -lmingw32 $(LF_TEMP)
-	INC += $(foreach DIR,$(GCC_I_DIRS_WIN),-I$(DIR))
-	LIB += $(foreach DIR,$(GCC_L_DIRS_WIN),-L$(DIR))
 	OPEN = cmd //c start "${@//&/^&}"
 endif
 ifneq (, $(shell uname -s | grep -E Linux))
 	CULT = linux
 	CF +=
 	LF +=
-	INC += $(foreach DIR,$(GCC_I_DIRS_LIN),-I$(DIR))
-	LIB += $(foreach DIR,$(GCC_L_DIRS_LIN),-L$(DIR))
 	OPEN = xdg-open
 endif
 ifneq (, $(shell uname -s | grep -E Darwin))
@@ -87,15 +87,16 @@ ifneq (, $(shell uname -s | grep -E Darwin))
 endif
 
 
-
+# Figure out compile and run targets based on compiler
+# TODO: When adding multiple-projects compiling, change COMPILE's RUNMEs
 ifeq ($(CC), emcc)
 	COMPILE = $(CC) $(OBJS) $(INC) $(CF) $(LF) \
-			  -o $(BLD_DIR)/$(OUT)/$(OUT).html
-	RUN = $(OPEN) $(BLD_DIR)/$(OUT)/$(OUT).html
+			  -o $(BLD_DIR)/$(RUNME)/$(RUNME).html
+	RUN = $(OPEN) $(BLD_DIR)/$(RUNME)/$(RUNME).html
 else
-	COMPILE = $(CC) $(OBJS) $(INC) $(LIB) $(CF) $(LF) \
-			  -o $(BLD_DIR)/$(OUT)/$(OUT)
-	RUN = $(BLD_DIR)/$(OUT)/$(OUT)
+	COMPILE = $(CC) $(OBJS) $(INC) $(LIB) $(PF) $(CF) $(LF) \
+			  -o $(BLD_DIR)/$(RUNME)/$(RUNME)
+	RUN = $(BLD_DIR)/$(RUNME)/$(RUNME)
 endif
 
 
@@ -151,12 +152,13 @@ rtd :
 	$(OPEN) docs/index.html
 	@#$(OPEN) docs/refman.pdf
 
+# TODO: Change these RUNMEs later
 $(BLD_DIR) :
 	mkdir -p $(BIN_DIR)
 	mkdir -p $(BLD_DIR)
 	mkdir -p $(RES_DIR)
-	cp -R $(BIN_DIR)/. $(BLD_DIR)/$(OUT)/
-	cp -R $(RES_DIR) $(BLD_DIR)/$(OUT)/
+	cp -R $(BIN_DIR)/. $(BLD_DIR)/$(RUNME)/
+	cp -R $(RES_DIR) $(BLD_DIR)/$(RUNME)/
 	$(MAKE) $(SUB_DIR)
 	$(MAKE) compile
 
@@ -173,19 +175,19 @@ run :
 	@echo
 
 clean :
-	$(MAKE) clean-$(BLD_DIR)
+	$(MAKE) clean-build
 
 clean-all :
-	$(MAKE) clean-$(BLD_DIR)
-	$(MAKE) clean-$(DOC_DIR)
-	$(MAKE) clean-$(SUB_DIR)
+	$(MAKE) clean-build
+	$(MAKE) clean-doc
+	$(MAKE) clean-sub
 
-clean-$(BLD_DIR) :
+clean-build :
 	rm -rf $(BLD_DIR)/*
 
-clean-$(DOC_DIR) :
+clean-doc :
 	rm -rf $(DOC_DIR)/*
 
-clean-$(SUB_DIR) :
+clean-sub :
 	rm -rf $(SUB_DIR)/*
 
