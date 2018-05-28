@@ -60,8 +60,7 @@ INC = -I$(INC_DIR) $(foreach DIR,$(EXT_INC_DIRS),-I$(SUB_DIR)/$(DIR)) \
 LIB = $(foreach DIR,$(PREFIXES),-L$(DIR)/lib)
 
 # Package flags
-PF = $(foreach PKG,$(PKGS),`pkg-config --cflags --libs \
-	 --silence-errors $(PKG)` )
+PF = `pkg-config --cflags --libs --silence-errors $(PKGS)`
 
 # Find what OS we're on so we can better configure all the compiler options.
 # All compiler flags can be customized on a per-platform basis.
