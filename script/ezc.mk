@@ -116,8 +116,8 @@ else
 				-c && \
 			ar rcs $(LIB_DIR)/lib$(LIB_NAME).a *.o && \
 			rm *.o && \
-	        $(CC) $(MAIN_OBJS) $(INC) $(LIB) $(PF) $(CF) $(LF) \
-				-L$(LIB_DIR) -l$(LIB_NAME) -o $(BLD_DIR)/$(EXEC_ME)/$(EXEC_ME)
+	        $(CC) $(MAIN_OBJS) $(INC) $(LIB) -L$(LIB_DIR) -l$(LIB_NAME) \
+				$(PF) $(CF) $(LF) -o $(BLD_DIR)/$(EXEC_ME)/$(EXEC_ME)
 	endif
 	RUN = $(BLD_DIR)/$(EXEC_ME)/$(EXEC_ME)
 endif
