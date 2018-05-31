@@ -111,11 +111,11 @@ else
 	        $(CC) $(MAIN_OBJS) $(INC) $(LIB) $(PF) $(CF) $(LF) \
 				$(TEMP) -o $(BLD_DIR)/$(EXEC_ME)/$(EXEC_ME)
 	else
-		COMPILE += \
+		COMPILE += && \
 			$(CC) $(SHARED_OBJS) $(INC) $(LIB) $(PF) $(CF) $(LF) \
-				-c -o $(LIB_DIR)/$(LIB_NAME).o && \
-			ar rcs $(LIB_DIR)/lib$(LIB_NAME).a $(LIB_DIR)/$(LIB_NAME).o && \
-			rm $(LIB_DIR)/$(LIB_NAME).o && \
+				-c && \
+			ar rcs $(LIB_DIR)/lib$(LIB_NAME).a *.o && \
+			rm *.o && \
 	        $(CC) $(MAIN_OBJS) $(INC) $(LIB) $(PF) $(CF) $(LF) \
 				-L$(LIB_DIR) -l$(LIB_NAME) -o $(BLD_DIR)/$(EXEC_ME)/$(EXEC_ME)
 	endif

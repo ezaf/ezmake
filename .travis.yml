@@ -3,6 +3,9 @@ install:
 script:
 - make init
 - make dirs
-- make compile
-- make build
+- make compile MODE=static
 - make run
+- make clean
+- make compile MODE=dynamic
+- make run
+
