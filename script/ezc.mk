@@ -135,7 +135,7 @@ $(DOC_DIR) :
 	$(MAKE) clean-$(DOC_DIR)
 	$(MAKE) $(SUB_DIR)
 	@# TODO: version check, m.css requires python 3.6+ and doxygen 1.8.14+
-	python3 $(SUB_DIR)/m.css/doxygen/dox2html5.py .doxyfile-mcss
+	python $(SUB_DIR)/m.css/doxygen/dox2html5.py .doxyfile
 	cp $(SUB_DIR)/m.css/css/m-dark+doxygen.compiled.css \
 		$(DOC_DIR)/m-dark+doxygen.compiled.css
 	find docs/m-dark+doxygen.compiled.css -type f -exec \
