@@ -24,14 +24,17 @@
 ##############################  Standard Options  #############################
 ###############################################################################
 
+# Name for your shared library code.
+LIB_NAME = ezhello
+
+# Name of the one application that you want to run when you call `make run`.
+# This should be equivalent to one of the items in `MAIN_SUBDIRS`.
+EXEC_ME = test_hello
+
 # Directory within /src of the app, example, and test that you want to build.
 # TODO: Allow compilation of multiple mains. This will require compiling the
 # shared API part of the code into a shared library.
 MAIN_SUBDIRS = test_hello
-
-# Name of the one application that you want to run when you call `make run`.
-# This should be equivalent to one of the items in `MAIN_SUBDIRS`.
-RUNME = test_hello
 
 # Source subdirectories. Shared among the apps, examples, and tests.
 SRC_SUBDIRS = EzHello
@@ -39,8 +42,9 @@ SRC_SUBDIRS = EzHello
 # Packages that you want to include in your project.
 # If `pkg-config` cannot find the package, `-I$(PREFIX)/include/$(PKG)` and
 # `-l$(PKG)` will be added to the build instead, for each PKG in PKGS and for
-# each PREFIX in PREFIXES. Commented out are examples.
-PKGS = #gtk+-3.0 SDL2 SDL2_image
+# each PREFIX in PREFIXES. These are CASE SENSITIVE! Double check the correct
+# case for your library. Commented out are examples.
+PKGS = #gtk+-3.0 sdl2 SDL2_image
 
 # Needed submodule include directories within /sub
 SUB_INC_DIRS =
@@ -62,6 +66,10 @@ SUB_SRC_FILES =
 # Compiler
 CC = gcc
 #CC = emcc
+
+# Compile API code to a dynamic (shared) library or static library.
+MODE = dynamic
+#MODE = static
 
 # C-Flags and library (`-l` only) settings
 # In many cases the order in which your `-l`s appear matters!
