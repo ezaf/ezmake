@@ -46,11 +46,15 @@ SRC_DIR = $(ROOT)/src
 
 
 
-# Add source directory to source file names
-OBJS = $(foreach OBJ,$(SUB_SRC_FILES),$(SUB_DIR)/$(OBJ)) \
+# Add source directory and file extensions to source file names.
+SHARED_OBJS = \
+		$(foreach OBJ,$(SUB_SRC_FILES),$(SUB_DIR)/$(OBJ)) \
+	    $(foreach EXT,$(SRC_EXTS), \
+	    $(foreach DIR,$(SUB_SRC_DIRS),$(wildcard $(SUB_DIR)/$(DIR)/*.$(EXT))) \
+	    $(foreach DIR,$(SRC_SUBDIRS),$(wildcard $(SRC_DIR)/$(DIR)/*.$(EXT))) )
+
+MAIN_OBJS = \
 	   $(foreach EXT,$(SRC_EXTS), \
-	   $(foreach DIR,$(SUB_SRC_DIRS),$(wildcard $(SUB_DIR)/$(DIR)/*.$(EXT))) \
-	   $(foreach DIR,$(SRC_SUBDIRS),$(wildcard $(SRC_DIR)/$(DIR)/*.$(EXT))) \
 	   $(foreach DIR,$(MAIN_SUBDIRS),$(wildcard $(PRJ_DIR)/$(DIR)/*.$(EXT))) )
 
 # Include and library flags
@@ -60,13 +64,16 @@ INC = -I$(INC_DIR) $(foreach DIR,$(EXT_INC_DIRS),-I$(SUB_DIR)/$(DIR)) \
 LIB = $(foreach DIR,$(PREFIXES),-L$(DIR)/lib)
 
 # Package flags
-PF = `pkg-config --cflags --libs --silence-errors $(PKGS)`
+ifneq ($(PKGS),)
+	PF = `pkg-config --cflags --libs --silence-errors $(PKGS)`
+endif
 
 # Find what OS we're on so we can better configure all the compiler options.
 # All compiler flags can be customized on a per-platform basis.
 # Linux->"Linux" | MacOS->"Darwin" | Windows->"*_NT-*"
 ifneq (, $(shell uname -s | grep -E _NT))
 	CULT = windows
+	DYN_EXT = dll
 	# Uncomment to remove console window
 	CF += #-Wl,-subsystem,windows
 	# -lmingw32 must come before everything else
@@ -76,26 +83,42 @@ ifneq (, $(shell uname -s | grep -E _NT))
 endif
 ifneq (, $(shell uname -s | grep -E Linux))
 	CULT = linux
+	DYN_EXT = so
 	CF +=
 	LF +=
 	OPEN = xdg-open
 endif
 ifneq (, $(shell uname -s | grep -E Darwin))
 	CULT = macos
+	DYN_EXT = dylib
 	# TODO: test on MacOS
 endif
 
-
 # Figure out compile and run targets based on compiler
-# TODO: When adding multiple-projects compiling, change COMPILE's RUNMEs
+# TODO: When adding multiple-projects compiling, change COMPILE's EXEC_MEs
 ifeq ($(CC), emcc)
-	COMPILE = $(CC) $(OBJS) $(INC) $(CF) $(LF) \
-			  -o $(BLD_DIR)/$(RUNME)/$(RUNME).html
-	RUN = $(OPEN) $(BLD_DIR)/$(RUNME)/$(RUNME).html
+	COMPILE = $(CC) $(SHARED_OBJS) $(MAIN_OBJS) $(INC) $(CF) $(LF) \
+			  -o $(BLD_DIR)/$(EXEC_ME)/$(EXEC_ME).html
+	RUN = $(OPEN) $(BLD_DIR)/$(EXEC_ME)/$(EXEC_ME).html
 else
-	COMPILE = $(CC) $(OBJS) $(INC) $(LIB) $(PF) $(CF) $(LF) \
-			  -o $(BLD_DIR)/$(RUNME)/$(RUNME)
-	RUN = $(BLD_DIR)/$(RUNME)/$(RUNME)
+	ifeq ($(MODE), dynamic)
+		TEMP := $(BIN_DIR)/$(LIB_NAME).$(DYN_EXT)
+		COMPILE = \
+			$(CC) $(SHARED_OBJS) $(INC) $(LIB) $(PF) $(CF) $(LF) \
+				-shared -o $(TEMP) && \
+			cp -R $(TEMP) $(BLD_DIR)/$(EXEC_ME)/ && \
+	        $(CC) $(MAIN_OBJS) $(INC) $(LIB) $(PF) $(CF) $(LF) \
+				$(TEMP) -o $(BLD_DIR)/$(EXEC_ME)/$(EXEC_ME)
+	else
+		COMPILE = \
+			$(CC) $(SHARED_OBJS) $(INC) $(LIB) $(PF) $(CF) $(LF) \
+				-c -o $(LIB_DIR)/$(LIB_NAME).o && \
+			ar rcs $(LIB_DIR)/lib$(LIB_NAME).a $(LIB_DIR)/$(LIB_NAME).o && \
+			rm $(LIB_DIR)/$(LIB_NAME).o && \
+	        $(CC) $(MAIN_OBJS) $(INC) $(LIB) $(PF) $(CF) $(LF) \
+				-L$(LIB_DIR) -l$(LIB_NAME) -o $(BLD_DIR)/$(EXEC_ME)/$(EXEC_ME)
+	endif
+	RUN = $(BLD_DIR)/$(EXEC_ME)/$(EXEC_ME)
 endif
 
 
@@ -118,7 +141,7 @@ MAKE = make --no-print-directory
 
 all :
 	$(MAKE) $(DOC_DIR)
-	$(MAKE) $(BLD_DIR)
+	$(MAKE) compile
 	$(MAKE) run
 
 help :
@@ -151,21 +174,22 @@ rtd :
 	$(OPEN) docs/index.html
 	@#$(OPEN) docs/refman.pdf
 
-# TODO: Change these RUNMEs later
-$(BLD_DIR) :
+dirs :
 	mkdir -p $(BIN_DIR)
 	mkdir -p $(BLD_DIR)
+	mkdir -p $(LIB_DIR)
 	mkdir -p $(RES_DIR)
-	cp -R $(BIN_DIR)/. $(BLD_DIR)/$(RUNME)/
-	cp -R $(RES_DIR) $(BLD_DIR)/$(RUNME)/
-	$(MAKE) $(SUB_DIR)
-	$(MAKE) compile
 
 $(SUB_DIR) :
 	git submodule init
 	git submodule update
 
-compile : $(OBJS)
+# TODO: Change these (EXEC_ME)s later
+$(BLD_DIR) :
+	cp -R $(BIN_DIR)/. $(BLD_DIR)/$(EXEC_ME)/
+	cp -R $(RES_DIR) $(BLD_DIR)/$(EXEC_ME)/
+
+compile : $(SHARED_OBJS) $(MAIN_OBJS)
 	$(COMPILE)
 
 run :

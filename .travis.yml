@@ -2,5 +2,7 @@ language: c
 install:
 script:
 - make init
+- make dirs
+- make compile
 - make build
 - make run
