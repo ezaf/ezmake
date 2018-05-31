@@ -101,16 +101,17 @@ ifeq ($(CC), emcc)
 			  -o $(BLD_DIR)/$(EXEC_ME)/$(EXEC_ME).html
 	RUN = $(OPEN) $(BLD_DIR)/$(EXEC_ME)/$(EXEC_ME).html
 else
+	COMPILE = mkdir -p $(BLD_DIR)/$(EXEC_ME)
 	ifeq ($(MODE), dynamic)
 		TEMP := $(BIN_DIR)/$(LIB_NAME).$(DYN_EXT)
-		COMPILE = \
+		COMPILE += && \
 			$(CC) $(SHARED_OBJS) $(INC) $(LIB) $(PF) $(CF) $(LF) \
-				-shared -o $(TEMP) && \
+				-shared -fPIC -o $(TEMP) && \
 			cp -R $(TEMP) $(BLD_DIR)/$(EXEC_ME)/ && \
 	        $(CC) $(MAIN_OBJS) $(INC) $(LIB) $(PF) $(CF) $(LF) \
 				$(TEMP) -o $(BLD_DIR)/$(EXEC_ME)/$(EXEC_ME)
 	else
-		COMPILE = \
+		COMPILE += \
 			$(CC) $(SHARED_OBJS) $(INC) $(LIB) $(PF) $(CF) $(LF) \
 				-c -o $(LIB_DIR)/$(LIB_NAME).o && \
 			ar rcs $(LIB_DIR)/lib$(LIB_NAME).a $(LIB_DIR)/$(LIB_NAME).o && \
@@ -184,13 +185,10 @@ $(SUB_DIR) :
 	git submodule init
 	git submodule update
 
-# TODO: Change these (EXEC_ME)s later
-$(BLD_DIR) :
-	cp -R $(BIN_DIR)/. $(BLD_DIR)/$(EXEC_ME)/
-	cp -R $(RES_DIR) $(BLD_DIR)/$(EXEC_ME)/
-
+# TODO: Change this EXEC_MEs later
 compile : $(SHARED_OBJS) $(MAIN_OBJS)
 	$(COMPILE)
+	cp -R $(RES_DIR) $(BLD_DIR)/$(EXEC_ME)/
 
 run :
 	@echo
