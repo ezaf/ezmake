@@ -175,24 +175,25 @@ rtd :
 	$(OPEN) docs/index.html
 	@#$(OPEN) docs/refman.pdf
 
-dirs :
-	mkdir -p $(BIN_DIR)
-	mkdir -p $(BLD_DIR)
-	mkdir -p $(LIB_DIR)
-	mkdir -p $(RES_DIR)
-
 $(SUB_DIR) :
 	git submodule init
 	git submodule update
 
-# TODO: Change this EXEC_MEs later
-compile : $(SHARED_OBJS) $(MAIN_OBJS)
-	$(COMPILE)
+# TODO: Change this EXEC_ME later
+$(BLD_DIR) :
+	mkdir -p $(BLD_DIR)
+	mkdir -p $(RES_DIR)
 	cp -R $(RES_DIR) $(BLD_DIR)/$(EXEC_ME)/
+	$(MAKE) compile
+
+compile : $(SHARED_OBJS) $(MAIN_OBJS)
+	mkdir -p $(BIN_DIR)
+	mkdir -p $(LIB_DIR)
+	$(COMPILE)
 
 run :
 	@echo
-	$(RUN)
+	$(RUN) < $(IN)
 	@echo
 
 clean :
