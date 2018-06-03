@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Multi-file opening script for EzC projects
+# Multi-file opening script for EzMake
 #
 # Copyright (c) 2018 Kirk Lange
 #
@@ -22,7 +22,7 @@
 
 
 
-# This script is really only intended to be called by `ezc.mk`, which itself
+# This script is really only intended to be called by `ezmake.mk`, which itself
 #   is only intended to be called by the root `Makefile`. The interface for
 #   this script is not at all user-friendly but it doesn't have to be. The
 #   root `Makefile` provides the interface for calling this script.
