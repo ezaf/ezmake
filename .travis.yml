@@ -6,8 +6,7 @@ script:
 - echo "EzMake developers" >> test
 - echo "/q" >> test
 - echo "" >> test
-- make run IN=test
+- make run ADD="< test"
 - make clean
 - make build MODE=dynamic
-- make run IN=test
-
+- make run ADD="< test"

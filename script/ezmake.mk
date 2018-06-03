@@ -193,7 +193,7 @@ compile : $(SHARED_OBJS) $(MAIN_OBJS)
 
 run :
 	@echo
-	$(RUN) < $(IN)
+	$(RUN) $(ADD)
 	@echo
 
 clean :
