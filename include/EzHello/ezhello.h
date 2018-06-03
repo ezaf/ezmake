@@ -1,9 +1,9 @@
 /** @file       ezhello.h
  *  @brief      A simple demonstration of how to write, document and include
- *              header files in EzC.
+ *              header files in EzMake.
  *  
  *  <!-------------------------------------------------------------------------
- *  Copyright (c) 2018 Kirk Lange
+ *  Copyright (c) 2018 Kirk Lange <github.com/kirklange>
  *  
  *  This software is provided 'as-is', without any express or implied
  *  warranty.  In no event will the authors be held liable for any damages
@@ -36,7 +36,7 @@ extern "C"
 /**
  *  @brief      Say hello to whoever you want!
  *  @param      subject    String indicating to whom we are saying hello to.
- *  @return     `void`, what do you expect?
+ *  @return     `void`, what did you expect?
  *  @details    Concatenates `"Hello "`, the `subject` parameter, and `"!\n"`.
  */
 void ezhello_printHelloTo(const char *subject);

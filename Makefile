@@ -29,12 +29,12 @@ LIB_NAME = ezhello
 
 # Name of the one application that you want to run when you call `make run`.
 # This should be equivalent to one of the items in `MAIN_SUBDIRS`.
-EXEC_ME = test_hello
+EXEC_ME = main_hellochat
 
 # Directory within /src of the app, example, and test that you want to build.
 # TODO: Allow compilation of multiple mains. This will require compiling the
 # shared API part of the code into a shared library.
-MAIN_SUBDIRS = test_hello
+MAIN_SUBDIRS = main_hellochat #test_hello
 
 # Source subdirectories. Shared among the apps, examples, and tests.
 SRC_SUBDIRS = EzHello

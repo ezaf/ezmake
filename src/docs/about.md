@@ -1,3 +1,3 @@
 # About
 
-TODO: describe EzC and its rationale.
+TODO: describe EzMake and its rationale.

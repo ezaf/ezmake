@@ -1,8 +1,9 @@
-/** @file       main.c
- *  @brief      Example main function for EzC.
+/** @file       test_hello.c
+ *  @brief      An example of how to create unit tests.
+ *  @details    TODO: Document this on a page within the "pages" tab.
  *
  *  <!-------------------------------------------------------------------------
- *  Copyright (c) 2018 Kirk Lange
+ *  Copyright (c) 2018 Kirk Lange <github.com/kirklange>
  *  
  *  This software is provided 'as-is', without any express or implied
  *  warranty.  In no event will the authors be held liable for any damages
