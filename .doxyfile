@@ -1,13 +1,16 @@
 @INCLUDE              = .doxyfile-base
 
-PROJECT_NAME          = EzC
+PROJECT_NAME          = EzMake
 
 STRIP_FROM_PATH       = include/EzHello \
+                        src/test_hello \
+                        src/main_hellochat \
                         src/docs \
 
 INPUT                 = README.md \
                         include/EzHello \
-                        src/EzHello \
+                        src/test_hello \
+                        src/main_hellochat \
                         src/docs \
 
 USE_MDFILE_AS_MAINPAGE = README.md
