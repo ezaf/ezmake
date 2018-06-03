@@ -2,10 +2,12 @@ language: c
 install:
 script:
 - make init
-- make dirs
-- make compile MODE=static
-- make run
+- make build MODE=static
+- echo "EzMake developers" >> test
+- echo "/q" >> test
+- echo "" >> test
+- make run IN=test
 - make clean
-- make compile MODE=dynamic
-- make run
+- make build MODE=dynamic
+- make run IN=test
 

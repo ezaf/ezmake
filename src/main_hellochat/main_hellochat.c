@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
 {
     const size_t INPUT_SIZE = 64;
     char subject[INPUT_SIZE];
-    char *quit_code = "!q";
+    char *quit_code = "/q";
     
     fprintf(stdout, "Welcome to HelloChat, the newest trending social media "
             "app!\nType \"%s\" to quit. Hit ENTER to submit your responses.\n",
