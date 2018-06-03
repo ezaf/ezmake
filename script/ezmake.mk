@@ -1,4 +1,4 @@
-# Base Makefile for EzC-based Projects
+# Base Makefile for EzMake
 #
 # Copyright (c) 2018 Kirk Lange
 #
@@ -151,7 +151,7 @@ help :
 	@echo
 
 open : # Usage example: `make open F=hello W=vs`
-	@$(SUB_DIR)/ezc/script/ezc_open.sh \
+	@$(SUB_DIR)/ezc/script/ezmake_open.sh \
 		$(SRC_DIR) $(INC_DIR) $(F) $(W)
 
 $(DOC_DIR) :
