@@ -34,7 +34,7 @@ EXEC_ME = main_hellochat
 # Directory within /src of the app, example, and test that you want to build.
 # TODO: Allow compilation of multiple mains. This will require compiling the
 # shared API part of the code into a shared library.
-MAIN_SUBDIRS = main_hellochat #test_hello
+MAIN_SUBDIRS = main_hellochat #test_hello test_glfw
 
 # Source subdirectories. Shared among the apps, examples, and tests.
 SRC_SUBDIRS = EzHello
@@ -44,7 +44,7 @@ SRC_SUBDIRS = EzHello
 # `-l$(PKG)` will be added to the build instead, for each PKG in PKGS and for
 # each PREFIX in PREFIXES. These are CASE SENSITIVE! Double check the correct
 # case for your library. Commented out are examples.
-PKGS = #gtk+-3.0 sdl2 SDL2_image
+PKGS = #glfw3 gtk+-3.0 sdl2 SDL2_image
 
 # Needed submodule include directories within /sub
 SUB_INC_DIRS =
@@ -80,7 +80,7 @@ ifeq ($(CC),emcc)
 	LF = #-s USE_SDL=2 -s USE_SDL_IMAGE=2 -s USE_SDL_TTF=2
 else
 	CF = -std=c11 -O3 -w
-	LF =
+	LF = #-lOpenGL32 -lglew32 -lglfw3
 endif
 
 # Source file extensions you want compiled.

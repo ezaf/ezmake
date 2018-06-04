@@ -65,7 +65,8 @@ LIB = $(foreach DIR,$(PREFIXES),-L$(DIR)/lib)
 
 # Package flags
 ifneq ($(PKGS),)
-	PF = `pkg-config --cflags --libs --silence-errors $(PKGS)`
+	PCF = `pkg-config --cflags --silence-errors $(PKGS)`
+	PLF = `pkg-config --libs --silence-errors $(PKGS)`
 endif
 
 # Find what OS we're on so we can better configure all the compiler options.
@@ -105,19 +106,19 @@ else
 	ifeq ($(MODE), dynamic)
 		TEMP := $(BIN_DIR)/$(LIB_NAME).$(DYN_EXT)
 		COMPILE += && \
-			$(CC) $(SHARED_OBJS) $(INC) $(LIB) $(PF) $(CF) $(LF) \
-				-shared -fPIC -o $(TEMP) && \
+			$(CC) $(SHARED_OBJS) $(INC) $(LIB) $(PCF) $(CF) $(LF) \
+				-shared -fPIC -o $(TEMP) $(PLF) && \
 			cp -R $(TEMP) $(BLD_DIR)/$(EXEC_ME)/ && \
-	        $(CC) $(MAIN_OBJS) $(INC) $(LIB) $(PF) $(CF) $(LF) \
-				$(TEMP) -o $(BLD_DIR)/$(EXEC_ME)/$(EXEC_ME)
+	        $(CC) $(MAIN_OBJS) $(INC) $(LIB) $(PCF) $(CF) $(LF) \
+				$(TEMP) -o $(BLD_DIR)/$(EXEC_ME)/$(EXEC_ME) $(PLF)
 	else
 		COMPILE += && \
-			$(CC) $(SHARED_OBJS) $(INC) $(LIB) $(PF) $(CF) $(LF) \
-				-c && \
+			$(CC) $(SHARED_OBJS) $(INC) $(LIB) $(PCF) $(CF) $(LF) \
+				-c $(PLF) && \
 			ar rcs $(LIB_DIR)/lib$(LIB_NAME).a *.o && \
 			rm *.o && \
 	        $(CC) $(MAIN_OBJS) $(INC) $(LIB) -L$(LIB_DIR) -l$(LIB_NAME) \
-				$(PF) $(CF) $(LF) -o $(BLD_DIR)/$(EXEC_ME)/$(EXEC_ME)
+			    $(PCF) $(CF) $(LF) -o $(BLD_DIR)/$(EXEC_ME)/$(EXEC_ME) $(PLF)
 	endif
 	RUN = $(BLD_DIR)/$(EXEC_ME)/$(EXEC_ME)
 endif
@@ -183,6 +184,7 @@ $(SUB_DIR) :
 $(BLD_DIR) :
 	mkdir -p $(BLD_DIR)
 	mkdir -p $(RES_DIR)
+	mkdir -p $(BLD_DIR)/$(EXEC_ME)
 	cp -R $(RES_DIR) $(BLD_DIR)/$(EXEC_ME)/
 	$(MAKE) compile
 
