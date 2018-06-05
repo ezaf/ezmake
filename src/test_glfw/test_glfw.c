@@ -1,3 +1,10 @@
+/** @file       test_glfw.c
+ *  @brief      A simple GLFW/GLEW project.
+ *  @details    Code from http://www.glfw.org/documentation.html. Added is
+ *              the `glewInit()` test.
+ */
+
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
