@@ -2,7 +2,7 @@
 
 # Multi-file opening script for EzMake
 #
-# Copyright (c) 2018 Kirk Lange
+# Copyright (c) 2018 Kirk Lange <gitlab.com/kirklange>
 #
 # This software is provided 'as-is', without any express or implied
 # warranty. In no event will the authors be held liable for any damages
