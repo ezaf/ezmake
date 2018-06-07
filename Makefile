@@ -27,17 +27,18 @@
 # Name for your shared library code.
 LIB_NAME = ezhello
 
-# Name of the one application that you want to run when you call `make run`.
-# This should be equivalent to one of the items in `MAIN_SUBDIRS`.
-EXEC_ME = main_hellochat
-
-# Directory within /src of the app, example, and test that you want to build.
-# TODO: Allow compilation of multiple mains. This will require compiling the
-# shared API part of the code into a shared library.
-MAIN_SUBDIRS = main_hellochat #test_hello test_glfw
-
-# Source subdirectories. Shared among the apps, examples, and tests.
+# Directories within /src of your library code.
+# Code in these subdirectories are meant to be shared among all apps and tests.
 SRC_SUBDIRS = EzHello
+
+# Directories within /src of the apps and tests that you want to build.
+MAIN_SUBDIRS = test_hello main_hellochat #test_glfw
+
+# Name of the application(s) you want to test when you call `make test`.
+TEST = test_hello main_hellochat
+
+# Name of the application (singular!) you want to run when you call `make run`.
+RUN = main_hellochat
 
 # Packages that you want to include in your project.
 # If `pkg-config` cannot find the package, `-I$(PREFIX)/include/$(PKG)` and
@@ -73,15 +74,11 @@ MODE = static
 #MODE = dynamic
 
 # C-Flags and library (`-l` only) settings
-# In many cases the order in which your `-l`s appear matters!
-# WARNING: EzMake's emcc mode only supports libc, libc++, and SDL2 by default.
-ifeq ($(CC),emcc)
-	CF = -O3
-	LF = #-s USE_SDL=2 -s USE_SDL_IMAGE=2 -s USE_SDL_TTF=2
-else
-	CF = -std=c11 -O3 -w
-	LF = #-lOpenGL32 -lglew32 -lglfw3
-endif
+# In many cases the order in which your `-l`s appear matters! One limitation of
+# EzMake is that we assume all tests/mains use the same compiler flags. If this
+# becomes a big enough issue, this will be amended in a future version.
+CF = -std=c11 -O3 -w
+LF = #-lOpenGL32 -lglew32
 
 # Source file extensions you want compiled.
 SRC_EXTS = c #cpp
