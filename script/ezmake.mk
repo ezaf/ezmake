@@ -43,24 +43,28 @@ PRJ_DIR = $(ROOT)/src
 RES_DIR = $(ROOT)/res
 # Source
 SRC_DIR = $(ROOT)/src
+# Tests
+TST_DIR = $(ROOT)/test
 
 
 
 # Add source directory and file extensions to source file names.
 SHARED_OBJS = \
-		$(foreach OBJ,$(SUB_SRC_FILES),$(SUB_DIR)/$(OBJ)) \
-	    $(foreach EXT,$(SRC_EXTS), \
-	    $(foreach DIR,$(SUB_SRC_DIRS),$(wildcard $(SUB_DIR)/$(DIR)/*.$(EXT))) \
-	    $(foreach DIR,$(SRC_SUBDIRS),$(wildcard $(SRC_DIR)/$(DIR)/*.$(EXT))) )
+	$(foreach OBJ,$(SUB_SRC_FILES),$(SUB_DIR)/$(OBJ)) \
+	$(foreach EXT,$(SRC_EXTS), \
+		$(foreach DIR,$(SUB_SRC_DIRS), \
+				$(wildcard $(SUB_DIR)/$(DIR)/*.$(EXT))) \
+		$(foreach DIR,$(SRC_SUBDIRS), \
+				$(wildcard $(SRC_DIR)/$(DIR)/*.$(EXT))) )
 
 MAIN_OBJS = \
-	   $(foreach EXT,$(SRC_EXTS), \
-	   $(foreach DIR,$(MAIN_SUBDIRS),$(wildcard $(PRJ_DIR)/$(DIR)/*.$(EXT))) )
+	$(foreach EXT,$(SRC_EXTS), \
+		$(foreach DIR,$(MAIN_SUBDIRS), \
+				$(wildcard $(PRJ_DIR)/$(DIR)/*.$(EXT))) )
 
 # Include and library flags
 INC = -I$(INC_DIR) $(foreach DIR,$(EXT_INC_DIRS),-I$(SUB_DIR)/$(DIR)) \
-	  $(foreach DIR,$(PREFIXES),-I$(DIR)/include) \
-	  -I$(PRJ_DIR)/$(MAIN_SUBDIR)
+	  $(foreach DIR,$(PREFIXES),-I$(DIR)/include)
 LIB = $(foreach DIR,$(PREFIXES),-L$(DIR)/lib)
 
 # Package flags
@@ -96,31 +100,75 @@ ifneq (, $(shell uname -s | grep -E Darwin))
 endif
 
 # Figure out compile and run targets based on compiler
-# TODO: When adding multiple-projects compiling, change COMPILE's EXEC_MEs
+# TODO: When adding multiple-projects compiling, change COMPILE's RUNs
 ifeq ($(CC), emcc)
-	COMPILE = $(CC) $(SHARED_OBJS) $(MAIN_OBJS) $(INC) $(CF) $(LF) \
-			  -o $(BLD_DIR)/$(EXEC_ME)/$(EXEC_ME).html
-	RUN = $(OPEN) $(BLD_DIR)/$(EXEC_ME)/$(EXEC_ME).html
+	CF = -O3
+	LF =
+	ifneq (, $(findstring sdl2, $(PKGS)))
+		LF += -s USE_SDL=2
+	endif
+	ifneq (, $(findstring SDL_image, $(PKGS)))
+		LF += -s USE_SDL_IMAGE=2
+	endif
+	ifneq (, $(findstring SDL_ttf, $(PKGS)))
+		LF += -s USE_SDL_TTF=2
+	endif
+	ifneq (, $(findstring SDL_net, $(PKGS)))
+		LF += -s USE_SDL_NET=2
+	endif
+
+	COMPILE = \
+		$(foreach MAIN,$(MAIN_SUBDIRS), \
+			$(CC) $(SHARED_OBJS) \
+			$(foreach EXT,$(SRC_EXTS), \
+					$(wildcard $(PRJ_DIR)/$(MAIN)/*.$(EXT)) ) \
+			-I$(PRJ_DIR)/$(MAIN) $(INC) $(CF) $(LF) \
+			-o $(BLD_DIR)/$(MAIN)/$(MAIN).html && \
+		)$(NULL)
+
+	RUN_CALL = $(OPEN) $(BLD_DIR)/$(RUN)/$(RUN).html
 else
-	COMPILE = mkdir -p $(BLD_DIR)/$(EXEC_ME)
+
+	COMPILE = \
+		$(foreach MAIN,$(MAIN_SUBDIRS), \
+				mkdir -p $(BLD_DIR)/$(MAIN) && \
+				cp -R $(RES_DIR) $(BLD_DIR)/$(MAIN)/ && ) \
+		$(CC) $(SHARED_OBJS) $(INC) $(LIB) $(PCF) $(CF) $(LF)
+
 	ifeq ($(MODE), dynamic)
-		TEMP := $(BIN_DIR)/$(LIB_NAME).$(DYN_EXT)
-		COMPILE += && \
-			$(CC) $(SHARED_OBJS) $(INC) $(LIB) $(PCF) $(CF) $(LF) \
-				-shared -fPIC -o $(TEMP) $(PLF) && \
-			cp -R $(TEMP) $(BLD_DIR)/$(EXEC_ME)/ && \
-	        $(CC) $(MAIN_OBJS) $(INC) $(LIB) $(PCF) $(CF) $(LF) \
-				$(TEMP) -o $(BLD_DIR)/$(EXEC_ME)/$(EXEC_ME) $(PLF)
+		LIB_OUT = $(BIN_DIR)/$(LIB_NAME).$(DYN_EXT)
+
+		COMPILE += -shared -fPIC -o $(LIB_OUT) $(PLF) && \
+			$(foreach MAIN,$(MAIN_SUBDIRS), \
+					cp -R $(LIB_OUT) $(BLD_DIR)/$(MAIN)/ && ) \
+			$(foreach MAIN,$(MAIN_SUBDIRS), \
+				$(CC) \
+				$(foreach EXT,$(SRC_EXTS), \
+						$(wildcard $(PRJ_DIR)/$(MAIN)/*.$(EXT))) \
+				-I$(PRJ_DIR)/$(MAIN) \
+				$(INC) $(LIB) $(PCF) $(CF) $(LF) $(LIB_OUT) \
+				-o $(BLD_DIR)/$(MAIN)/$(MAIN) $(PLF) && \
+			)$(NULL)
 	else
-		COMPILE += && \
-			$(CC) $(SHARED_OBJS) $(INC) $(LIB) $(PCF) $(CF) $(LF) \
-				-c $(PLF) && \
+		COMPILE += -c $(PLF) && \
 			ar rcs $(LIB_DIR)/lib$(LIB_NAME).a *.o && \
 			rm *.o && \
-	        $(CC) $(MAIN_OBJS) $(INC) $(LIB) -L$(LIB_DIR) -l$(LIB_NAME) \
-			    $(PCF) $(CF) $(LF) -o $(BLD_DIR)/$(EXEC_ME)/$(EXEC_ME) $(PLF)
+			$(foreach MAIN,$(MAIN_SUBDIRS), \
+				$(CC) \
+				$(foreach EXT,$(SRC_EXTS), \
+					$(wildcard $(PRJ_DIR)/$(MAIN)/*.$(EXT))) \
+				-I$(PRJ_DIR)/$(MAIN) \
+				$(INC) $(LIB) -L$(LIB_DIR) -l$(LIB_NAME) $(PCF) $(CF) $(LF) \
+				-o $(BLD_DIR)/$(MAIN)/$(MAIN) $(PLF) && \
+			)$(NULL)
 	endif
-	RUN = $(BLD_DIR)/$(EXEC_ME)/$(EXEC_ME)
+
+	RUN_CALL = $(BLD_DIR)/$(RUN)/$(RUN)
+	TST_CALL = $(foreach T,$(TEST), \
+			   		$(foreach INPUT,$(wildcard $(TST_DIR)/$(T)/*), \
+							echo && \
+							$(BLD_DIR)/$(T)/$(T) < $(INPUT) && \
+						   	echo && ))$(NULL)
 endif
 
 
@@ -135,21 +183,21 @@ PYV_MINOR = $(word 2,${PYV_FULL})
 PYV_PATCH = $(word 3,${PYV_FULL})
 
 MAKE = make --no-print-directory
+NULL = echo >/dev/null
 
 
 
-.PHONY : all $(BLD_DIR) run dirs deps $(SUB_DIR) $(DOC_DIR) rtd compile help
-.PHONY : open clean clean-$(BLD_DIR) clean-$(DOC_DIR) clean-$(SUB_DIR)
-
-all :
-	$(MAKE) $(DOC_DIR)
-	$(MAKE) compile
-	$(MAKE) run
+.PHONY: help all open $(DOC_DIR) $(SUB_DIR) $(BLD_DIR) rtd run test clean
 
 help :
 	@echo
 	@echo "TODO: describe make targets"
 	@echo
+
+all :
+	$(MAKE) $(DOC_DIR)
+	$(MAKE) compile
+	$(MAKE) run
 
 open : # Usage example: `make open F=hello W=vs`
 	@$(SUB_DIR)/ezc/script/ezmake_open.sh \
@@ -180,12 +228,9 @@ $(SUB_DIR) :
 	git submodule init
 	git submodule update
 
-# TODO: Change this EXEC_ME later
 $(BLD_DIR) :
 	mkdir -p $(BLD_DIR)
 	mkdir -p $(RES_DIR)
-	mkdir -p $(BLD_DIR)/$(EXEC_ME)
-	cp -R $(RES_DIR) $(BLD_DIR)/$(EXEC_ME)/
 	$(MAKE) compile
 
 compile : $(SHARED_OBJS) $(MAIN_OBJS)
@@ -195,23 +240,20 @@ compile : $(SHARED_OBJS) $(MAIN_OBJS)
 
 run :
 	@echo
-	$(RUN) $(ADD)
+	$(RUN_CALL)
 	@echo
 
+test :
+	@echo "== BEGIN TESTING =="
+	@echo
+	@$(TST_CALL)
+	@echo
+	@echo "=== END TESTING ==="
+
+
+
+CLEAN = $(BLD_DIR) $(DOC_DIR) $(SUB_DIR)
+CLEAN_COMMAND = $(foreach DIR,$(CLEAN),rm -rf $(DIR)/* && )$(NULL)
+
 clean :
-	$(MAKE) clean-build
-
-clean-all :
-	$(MAKE) clean-build
-	$(MAKE) clean-doc
-	$(MAKE) clean-sub
-
-clean-build :
-	rm -rf $(BLD_DIR)/*
-
-clean-doc :
-	rm -rf $(DOC_DIR)/*
-
-clean-sub :
-	rm -rf $(SUB_DIR)/*
-
+	$(CLEAN_COMMAND)
