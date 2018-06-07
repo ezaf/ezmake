@@ -1,11 +1,12 @@
 before_script:
-  - make init
 
 # EzMake defaults to building and running all tests
 test_all:
   script:
+    - make init
     - make build MODE=dynamic
     - make test
     - make clean
+    - make init
     - make build MODE=dynamic
     - make test
