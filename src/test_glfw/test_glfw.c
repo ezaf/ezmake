@@ -16,11 +16,6 @@ int main(void)
     if (!glfwInit())
         return -1;
 
-    if (glewInit() != GLEW_OK)
-    {
-        printf("GLEW failed to initialize!\n");
-    }
-
     /* Create a windowed mode window and its OpenGL context */
     window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
     if (!window)
@@ -31,6 +26,11 @@ int main(void)
 
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
+
+    if (glewInit() != GLEW_OK)
+    {
+        printf("GLEW failed to initialize!\n");
+    }
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
