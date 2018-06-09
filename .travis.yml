@@ -8,3 +8,4 @@ script:
   - make init
   - make build MODE=static
   - make test
+  - make clean
