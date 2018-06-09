@@ -29,7 +29,7 @@
 
 int main(int argc, char *argv[])
 {
-    ezhello_printHelloTo("EzC developers");
+    ezhello_printHelloTo("EzAF developers");
     return 0;
 }
 
