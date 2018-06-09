@@ -122,4 +122,3 @@ init :
 	@rmdir --ignore-fail-on-non-empty script
 
 -include $(SUB_DIR)/ezmake/script/ezmake.mk
--include script/ezmake.mk
