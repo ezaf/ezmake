@@ -165,10 +165,15 @@ else
 
 	RUN_CALL = $(BLD_DIR)/$(RUN)/$(RUN)
 	TST_CALL = $(foreach T,$(TEST), \
-			   		$(foreach INPUT,$(wildcard $(TST_DIR)/$(T)/*), \
-							echo && \
-							$(BLD_DIR)/$(T)/$(T) < $(INPUT) && \
-						   	echo && ))$(NULL)
+				   $(foreach INPUT, \
+						$(if $(wildcard $(TST_DIR)/$(T)/*), \
+							$(wildcard $(TST_DIR)/$(T)/*), \
+							/dev/null), \
+						echo && \
+						echo "== $(T) ==" && \
+						$(BLD_DIR)/$(T)/$(T) < $(INPUT) && \
+						echo &&\
+					))$(NULL)
 endif
 
 
@@ -199,13 +204,12 @@ all :
 	$(MAKE) compile
 	$(MAKE) run
 
-open : # Usage example: `make open F=hello W=vs`
-	@$(SUB_DIR)/ezc/script/ezmake_open.sh \
-		$(SRC_DIR) $(INC_DIR) $(F) $(W)
+open : # Usage example: `make open F=ezhello`
+	vim -O `find $(SRC_DIR) -name $(F).*` `find $(INC_DIR) -name $(F).*`
 
 $(DOC_DIR) :
 	mkdir -p $(DOC_DIR)
-	$(MAKE) clean-$(DOC_DIR)
+	rm -rf $(DOC_DIR)/*
 	$(MAKE) $(SUB_DIR)
 	@# TODO: version check, m.css requires python 3.6+ and doxygen 1.8.14+
 	python $(SUB_DIR)/m.css/doxygen/dox2html5.py .doxyfile
@@ -248,7 +252,7 @@ test :
 	@echo
 	@$(TST_CALL)
 	@echo
-	@echo "=== END TESTING ==="
+	@echo "== END TESTING =="
 
 
 
