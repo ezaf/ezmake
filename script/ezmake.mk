@@ -170,7 +170,7 @@ else
 							$(wildcard $(TST_DIR)/$(T)/*), \
 							/dev/null), \
 						echo && \
-						echo "== $(T) ==" && \
+						echo "== $(T) < $(notdir $(INPUT)) ==" && \
 						$(BLD_DIR)/$(T)/$(T) < $(INPUT) && \
 						echo &&\
 					))$(NULL)
