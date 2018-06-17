@@ -187,6 +187,7 @@ PYV_MAJOR = $(word 1,${PYV_FULL})
 PYV_MINOR = $(word 2,${PYV_FULL})
 PYV_PATCH = $(word 3,${PYV_FULL})
 
+PERCENT := %
 MAKE = make --no-print-directory
 NULL = echo >/dev/null
 
@@ -195,17 +196,12 @@ NULL = echo >/dev/null
 .PHONY: help all open $(DOC_DIR) $(SUB_DIR) $(BLD_DIR) rtd run test clean
 
 help :
-	@echo
-	@echo "TODO: describe make targets"
-	@echo
+	@printf "\nTODO: describe make targets\n"
 
 all :
 	$(MAKE) $(DOC_DIR)
 	$(MAKE) compile
 	$(MAKE) run
-
-open : # Usage example: `make open F=ezhello`
-	vim -O `find $(SRC_DIR) -name $(F).*` `find $(INC_DIR) -name $(F).*`
 
 $(DOC_DIR) :
 	mkdir -p $(DOC_DIR)
@@ -248,11 +244,9 @@ run :
 	@echo
 
 test :
-	@echo "== BEGIN TESTING =="
-	@echo
+	@printf "== BEGIN TESTING ==\n"
 	@$(TST_CALL)
-	@echo
-	@echo "== END TESTING =="
+	@printf "\n== END TESTING =="
 
 
 
@@ -261,3 +255,114 @@ CLEAN_COMMAND = $(foreach DIR,$(CLEAN),rm -rf $(DIR)/* && )$(NULL)
 
 clean :
 	$(CLEAN_COMMAND)
+
+
+
+# File/Module name and location
+F = ExampleAPI/example
+# Test input file name
+T =
+# Source file extension - C Module
+C = c
+# Header file extension - C Module
+H = h
+# Source file extension - C++ Object
+CPP = cpp
+# Header file extension - C++ Object
+HPP = hpp
+# Get license command
+LICENSE = `cat $(ROOT)/LICENSE | sed -e $$'s/\r//' | awk '{print " *  " $$0}'`
+
+open : # Usage example: `make open F=ezhello`
+	vim -O `find $(SRC_DIR) -name $(F).*` `find $(INC_DIR) -name $(F).*`
+
+module : # Usage example: `make module F=EzHello/ezhello`
+	mkdir -p $(INC_DIR)/`dirname $(F)`
+	mkdir -p $(SRC_DIR)/`dirname $(F)`
+	@printf "\
+	/** @file       $(F).$(H)\n\
+	 *  @brief      Lorem ipsum\n\
+	 *  @details    Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n\
+	 *  \n\
+	 *  <!-------------------------------------------------------------------------\n\
+	$(LICENSE)\n\
+	 *  -------------------------------------------------------------------------->\n\
+	 */\n\
+	\n\
+	#ifndef `echo $(F) | sed $$'s/\//_/' | awk '{print toupper($$0)}'`_H\n\
+	#define `echo $(F) | sed $$'s/\//_/' | awk '{print toupper($$0)}'`_H\n\
+	\n\
+	#ifdef __cplusplus\n\
+	extern "C"\n\
+	{\n\
+	#endif\n\
+	\n\
+	\n\
+	\n\
+	#include <stdint.h>\n\
+	\n\
+	\n\
+	\n\
+	/**\n\
+	 *  @brief      Lorem ipsum\n\
+	 *  @details    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do\n\
+					eiusmod tempor incididunt ut labore et dolore magna aliqua.\n\
+	 *  @param      alpha	Ut enim ad minim veniam, quis nostrud exercitation\n\
+							ullamco laboris nisi ut aliquip ex ea commodo\n\
+								consequat.\n\
+					beta 	Duis aute irure dolor in reprehenderit in voluptate\n\
+								velit esse cillum dolore eu fugiat nulla pariatur.\n\
+	 *  @return     Excepteur sint occaecat cupidatat non proident, sunt in culpa\n\
+					qui officia deserunt mollit anim id est laborum.\n\
+	 */\n\
+	int16_t `echo $(F) | sed $$'s/\//_/' | awk '{print tolower($$0)}'`_example(int16_t alpha, int16_t beta);\n\
+	\n\
+	\n\
+	\n\
+	#ifdef __cplusplus\n\
+	}\n\
+	#endif\n\
+	\n\
+	#endif /* `echo $(F) | sed $$'s/\//_/' | awk '{print toupper($$0)}'`_H */\
+	" >> $(INC_DIR)/$(F).$(H)
+	@printf "\
+	/*  $(F).$(C)\n\
+	 *  \n\
+	 *  <!-------------------------------------------------------------------------\n\
+	$(LICENSE)\n\
+	 *  -------------------------------------------------------------------------->\n\
+	 */\n\
+	\n\
+	\n\
+	\n\
+	int16_t `echo $(F) | sed $$'s/\//_/' | awk '{print tolower($$0)}'`_example(int16_t alpha, int16_t beta)\n\
+	{\n\
+		return alpha + beta;\n\
+	}\
+	" >> $(SRC_DIR)/$(F).$(C)
+	vim -O $(SRC_DIR)/$(F).$(C) $(INC_DIR)/$(F).$(H)
+
+main : # Usage example: `make main F=test_hello T=say_hello`
+	mkdir -p $(SRC_DIR)/$(F)
+	if [ $(T) ]; then mkdir -p $(TST_DIR)/$(F); fi
+	@printf "\
+	/** @file 		$(F)/$(F).$(C)\n\
+	 *  @brief      Lorem ipsum\n\
+	 *  @details    Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n\
+	 *  \n\
+	 *  <!-------------------------------------------------------------------------\n\
+	$(LICENSE)\n\
+	 *  -------------------------------------------------------------------------->\n\
+	 */\n\
+	\n\
+	#include <stdio.h>\n\
+	\n\
+	\n\
+	\n\
+	int main(int argc, char *argv[])\n\
+	{\n\
+		printf(\"Hello world! This is \'$(F)\'.\\\n\");\n\
+		return 0;\n\
+	}\
+	" >> $(SRC_DIR)/$(F)/$(F).$(C)
+	vim -O $(SRC_DIR)/$(F)/$(F).$(C) `if [ $(T) ]; then printf $(TST_DIR)/$(F)/$(T); fi`
