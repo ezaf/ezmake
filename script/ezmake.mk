@@ -297,23 +297,20 @@ module : # Usage example: `make module F=EzHello/ezhello`
 	{\n\
 	#endif\n\
 	\n\
-	\n\
-	\n\
 	#include <stdint.h>\n\
 	\n\
 	\n\
 	\n\
-	/**\n\
-	 *  @brief      Lorem ipsum\n\
+	/** @brief      Lorem ipsum\n\
 	 *  @details    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do\n\
-					eiusmod tempor incididunt ut labore et dolore magna aliqua.\n\
-	 *  @param      alpha	Ut enim ad minim veniam, quis nostrud exercitation\n\
-							ullamco laboris nisi ut aliquip ex ea commodo\n\
-								consequat.\n\
-					beta 	Duis aute irure dolor in reprehenderit in voluptate\n\
-								velit esse cillum dolore eu fugiat nulla pariatur.\n\
+	 *              eiusmod tempor incididunt ut labore et dolore magna aliqua.\n\
+	 *  @param      alpha   Ut enim ad minim veniam, quis nostrud exercitation\n\
+	 *                      ullamco laboris nisi ut aliquip ex ea commodo\n\
+	 *                      consequat.\n\
+	 *              beta    Duis aute irure dolor in reprehenderit in voluptate\n\
+	 *                      velit esse cillum dolore eu fugiat nulla pariatur.\n\
 	 *  @return     Excepteur sint occaecat cupidatat non proident, sunt in culpa\n\
-					qui officia deserunt mollit anim id est laborum.\n\
+	 *              qui officia deserunt mollit anim id est laborum.\n\
 	 */\n\
 	int16_t `basename $(F) | awk '{print tolower($$0)}'`_example(int16_t alpha, int16_t beta);\n\
 	\n\
@@ -333,11 +330,13 @@ module : # Usage example: `make module F=EzHello/ezhello`
 	 *  -------------------------------------------------------------------------->\n\
 	 */\n\
 	\n\
+	#include "$(F).$(H)"
+	\n\
 	\n\
 	\n\
 	int16_t `basename $(F) | awk '{print tolower($$0)}'`_example(int16_t alpha, int16_t beta)\n\
 	{\n\
-		return alpha + beta;\n\
+	    return alpha + beta;\n\
 	}\
 	" >> $(SRC_DIR)/$(F).$(C)
 	vim -O $(SRC_DIR)/$(F).$(C) $(INC_DIR)/$(F).$(H)
@@ -346,7 +345,7 @@ main : # Usage example: `make main F=test_hello T=say_hello`
 	mkdir -p $(SRC_DIR)/$(F)
 	if [ $(T) ]; then mkdir -p $(TST_DIR)/$(F); fi
 	@printf "\
-	/** @file 		$(F)/$(F).$(C)\n\
+	/** @file       $(F)/$(F).$(C)\n\
 	 *  @brief      Lorem ipsum\n\
 	 *  @details    Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n\
 	 *  \n\
@@ -361,8 +360,8 @@ main : # Usage example: `make main F=test_hello T=say_hello`
 	\n\
 	int main(int argc, char *argv[])\n\
 	{\n\
-		printf(\"Hello world! This is \'$(F)\'.\\\n\");\n\
-		return 0;\n\
+	    printf(\"Hello world! This is \'$(F)\'.\\\n\");\n\
+	    return 0;\n\
 	}\
 	" >> $(SRC_DIR)/$(F)/$(F).$(C)
 	vim -O $(SRC_DIR)/$(F)/$(F).$(C) `if [ $(T) ]; then printf $(TST_DIR)/$(F)/$(T); fi`
