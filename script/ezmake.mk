@@ -289,8 +289,8 @@ module : # Usage example: `make module F=EzHello/ezhello`
 	 *  -------------------------------------------------------------------------->\n\
 	 */\n\
 	\n\
-	#ifndef `echo $(F) | sed $$'s/\//_/' | awk '{print toupper($$0)}'`_H\n\
-	#define `echo $(F) | sed $$'s/\//_/' | awk '{print toupper($$0)}'`_H\n\
+	#ifndef `basename $(F) | awk '{print toupper($$0)}'`_H\n\
+	#define `basename $(F) | awk '{print toupper($$0)}'`_H\n\
 	\n\
 	#ifdef __cplusplus\n\
 	extern "C"\n\
@@ -315,7 +315,7 @@ module : # Usage example: `make module F=EzHello/ezhello`
 	 *  @return     Excepteur sint occaecat cupidatat non proident, sunt in culpa\n\
 					qui officia deserunt mollit anim id est laborum.\n\
 	 */\n\
-	int16_t `echo $(F) | sed $$'s/\//_/' | awk '{print tolower($$0)}'`_example(int16_t alpha, int16_t beta);\n\
+	int16_t `basename $(F) | awk '{print tolower($$0)}'`_example(int16_t alpha, int16_t beta);\n\
 	\n\
 	\n\
 	\n\
@@ -323,7 +323,7 @@ module : # Usage example: `make module F=EzHello/ezhello`
 	}\n\
 	#endif\n\
 	\n\
-	#endif /* `echo $(F) | sed $$'s/\//_/' | awk '{print toupper($$0)}'`_H */\
+	#endif /* `basename $(F) | awk '{print toupper($$0)}'`_H */\
 	" >> $(INC_DIR)/$(F).$(H)
 	@printf "\
 	/*  $(F).$(C)\n\
@@ -335,7 +335,7 @@ module : # Usage example: `make module F=EzHello/ezhello`
 	\n\
 	\n\
 	\n\
-	int16_t `echo $(F) | sed $$'s/\//_/' | awk '{print tolower($$0)}'`_example(int16_t alpha, int16_t beta)\n\
+	int16_t `basename $(F) | awk '{print tolower($$0)}'`_example(int16_t alpha, int16_t beta)\n\
 	{\n\
 		return alpha + beta;\n\
 	}\
