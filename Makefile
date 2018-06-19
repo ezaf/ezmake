@@ -29,7 +29,7 @@ LIB_NAME = ezhello
 
 # Directories within /src of your library code.
 # Code in these subdirectories are meant to be shared among all apps and tests.
-SRC_SUBDIRS = EzHello
+LIB_SUBDIR = EzHello
 
 # Directories within /src of the apps and tests that you want to build.
 MAIN_SUBDIRS = test_hello main_hellochat #test_glfw

@@ -28,6 +28,8 @@
 BIN_DIR = $(ROOT)/bin
 # Build
 BLD_DIR = $(ROOT)/build
+# Data (config, textures, etc)
+DAT_DIR = $(ROOT)/data
 # Documentation
 DOC_DIR = $(ROOT)/docs
 # External (git submodule) directory
@@ -39,8 +41,6 @@ INC_DIR = $(ROOT)/include
 LIB_DIR = $(ROOT)/lib
 # Projects, examples, and tests
 PRJ_DIR = $(ROOT)/src
-# Resources (config, textures, etc)
-RES_DIR = $(ROOT)/res
 # Source
 SRC_DIR = $(ROOT)/src
 # Tests
@@ -54,7 +54,7 @@ SHARED_OBJS = \
 	$(foreach EXT,$(SRC_EXTS), \
 		$(foreach DIR,$(SUB_SRC_DIRS), \
 				$(wildcard $(SUB_DIR)/$(DIR)/*.$(EXT))) \
-		$(foreach DIR,$(SRC_SUBDIRS), \
+		$(foreach DIR,$(LIB_SUBDIR), \
 				$(wildcard $(SRC_DIR)/$(DIR)/*.$(EXT))) )
 
 MAIN_OBJS = \
@@ -132,7 +132,7 @@ else
 	COMPILE = \
 		$(foreach MAIN,$(MAIN_SUBDIRS), \
 				mkdir -p $(BLD_DIR)/$(MAIN) && \
-				cp -R $(RES_DIR) $(BLD_DIR)/$(MAIN)/ && ) \
+				cp -R $(DAT_DIR) $(BLD_DIR)/$(MAIN)/ && ) \
 		$(CC) $(SHARED_OBJS) $(INC) $(LIB) $(PCF) $(CF) $(LF)
 
 	ifeq ($(MODE), dynamic)
@@ -230,7 +230,7 @@ $(SUB_DIR) :
 
 $(BLD_DIR) :
 	mkdir -p $(BLD_DIR)
-	mkdir -p $(RES_DIR)
+	mkdir -p $(DAT_DIR)
 	$(MAKE) compile
 
 compile : $(SHARED_OBJS) $(MAIN_OBJS)
@@ -276,9 +276,9 @@ LICENSE = `cat $(ROOT)/LICENSE | sed -e $$'s/\r//' | awk '{print " *  " $$0}'`
 open : # Usage example: `make open F=ezhello`
 	vim -O `find $(SRC_DIR) -name $(F).*` `find $(INC_DIR) -name $(F).*`
 
-module : # Usage example: `make module F=EzHello/ezhello`
-	mkdir -p $(INC_DIR)/`dirname $(F)`
-	mkdir -p $(SRC_DIR)/`dirname $(F)`
+module : # Usage example: `make module F=ezhello`
+	mkdir -p $(INC_DIR)/$(LIB_SUBDIR)/`dirname $(F)`
+	mkdir -p $(SRC_DIR)/$(LIB_SUBDIR)/`dirname $(F)`
 	@printf "\
 	/** @file       $(F).$(H)\n\
 	 *  @brief      Lorem ipsum\n\
@@ -321,7 +321,7 @@ module : # Usage example: `make module F=EzHello/ezhello`
 	#endif\n\
 	\n\
 	#endif /* `basename $(F) | awk '{print toupper($$0)}'`_H */\
-	" >> $(INC_DIR)/$(F).$(H)
+	" >> $(INC_DIR)/$(LIB_SUBDIR)/$(F).$(H)
 	@printf "\
 	/*  $(F).$(C)\n\
 	 *  \n\
@@ -330,7 +330,7 @@ module : # Usage example: `make module F=EzHello/ezhello`
 	 *  -------------------------------------------------------------------------->\n\
 	 */\n\
 	\n\
-	#include "$(F).$(H)"
+	#include \"$(LIB_SUBDIR)/$(F).$(H)\"\n\
 	\n\
 	\n\
 	\n\
@@ -338,14 +338,14 @@ module : # Usage example: `make module F=EzHello/ezhello`
 	{\n\
 	    return alpha + beta;\n\
 	}\
-	" >> $(SRC_DIR)/$(F).$(C)
-	vim -O $(SRC_DIR)/$(F).$(C) $(INC_DIR)/$(F).$(H)
+	" >> $(SRC_DIR)/$(LIB_SUBDIR)/$(F).$(C)
+	vim -O $(SRC_DIR)/$(LIB_SUBDIR)/$(F).$(C) $(INC_DIR)/$(LIB_SUBDIR)/$(F).$(H)
 
 main : # Usage example: `make main F=test_hello T=say_hello`
 	mkdir -p $(SRC_DIR)/$(F)
 	if [ $(T) ]; then mkdir -p $(TST_DIR)/$(F); fi
 	@printf "\
-	/** @file       $(F)/$(F).$(C)\n\
+	/** @file       $(F).$(C)\n\
 	 *  @brief      Lorem ipsum\n\
 	 *  @details    Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n\
 	 *  \n\
