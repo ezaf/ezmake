@@ -307,7 +307,7 @@ module : # Usage example: `make module F=ezhello`
 	 *  @param      alpha   Ut enim ad minim veniam, quis nostrud exercitation\n\
 	 *                      ullamco laboris nisi ut aliquip ex ea commodo\n\
 	 *                      consequat.\n\
-	 *              beta    Duis aute irure dolor in reprehenderit in voluptate\n\
+	 *  @param      beta    Duis aute irure dolor in reprehenderit in voluptate\n\
 	 *                      velit esse cillum dolore eu fugiat nulla pariatur.\n\
 	 *  @return     Excepteur sint occaecat cupidatat non proident, sunt in culpa\n\
 	 *              qui officia deserunt mollit anim id est laborum.\n\
