@@ -280,17 +280,18 @@ module : # Usage example: `make module F=ezhello`
 	mkdir -p $(INC_DIR)/$(LIB_SUBDIR)/`dirname $(F)`
 	mkdir -p $(SRC_DIR)/$(LIB_SUBDIR)/`dirname $(F)`
 	@printf "\
-	/** @file       $(F).$(H)\n\
-	 *  @brief      Lorem ipsum\n\
-	 *  @details    Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n\
+	/** $(F).$(H)\n\
 	 *  \n\
-	 *  <!-------------------------------------------------------------------------\n\
 	$(LICENSE)\n\
-	 *  -------------------------------------------------------------------------->\n\
 	 */\n\
 	\n\
 	#ifndef `basename $(F) | awk '{print toupper($$0)}'`_H\n\
 	#define `basename $(F) | awk '{print toupper($$0)}'`_H\n\
+	\n\
+	/** @file       $(F).$(H)\n\
+	 *  @brief      Lorem ipsum\n\
+	 *  @details    Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n\
+	 */\n\
 	\n\
 	#ifdef __cplusplus\n\
 	extern "C"\n\
@@ -325,9 +326,7 @@ module : # Usage example: `make module F=ezhello`
 	@printf "\
 	/*  $(F).$(C)\n\
 	 *  \n\
-	 *  <!-------------------------------------------------------------------------\n\
 	$(LICENSE)\n\
-	 *  -------------------------------------------------------------------------->\n\
 	 */\n\
 	\n\
 	#include \"$(LIB_SUBDIR)/$(F).$(H)\"\n\
@@ -345,13 +344,14 @@ main : # Usage example: `make main F=test_hello T=say_hello`
 	mkdir -p $(SRC_DIR)/$(F)
 	if [ $(T) ]; then mkdir -p $(TST_DIR)/$(F); fi
 	@printf "\
+	/*  $(F).$(C)\n\
+	 *  \n\
+	$(LICENSE)\n\
+	 */\n\
+	\n\
 	/** @file       $(F).$(C)\n\
 	 *  @brief      Lorem ipsum\n\
 	 *  @details    Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n\
-	 *  \n\
-	 *  <!-------------------------------------------------------------------------\n\
-	$(LICENSE)\n\
-	 *  -------------------------------------------------------------------------->\n\
 	 */\n\
 	\n\
 	#include <stdio.h>\n\
