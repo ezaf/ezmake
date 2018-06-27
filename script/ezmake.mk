@@ -246,7 +246,7 @@ run :
 test :
 	@printf "== BEGIN TESTING ==\n"
 	@$(TST_CALL)
-	@printf "\n== END TESTING =="
+	@printf "\n== END TESTING ==\n"
 
 
 
