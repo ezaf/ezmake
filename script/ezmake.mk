@@ -63,7 +63,7 @@ MAIN_OBJS = \
 				$(wildcard $(PRJ_DIR)/$(DIR)/*.$(EXT))) )
 
 # Include and library flags
-INC = -I$(INC_DIR) $(foreach DIR,$(EXT_INC_DIRS),-I$(SUB_DIR)/$(DIR)) \
+INC = -I$(INC_DIR) $(foreach DIR,$(SUB_INC_DIRS),-I$(SUB_DIR)/$(DIR)) \
 	  $(foreach DIR,$(PREFIXES),-I$(DIR)/include)
 LIB = $(foreach DIR,$(PREFIXES),-L$(DIR)/lib)
 
