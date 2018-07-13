@@ -1,0 +1,178 @@
+body {
+    width: 980px;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #333;
+    color: #ddd;
+}
+
+hr {
+	border-top: 1px solid #888;
+}
+
+h2.groupheader {
+	border-bottom: 1px solid #888;
+	color: #acf;
+}
+
+address {
+	color: #ddd;
+}
+
+a {
+	color: #68c;
+}
+
+a.el {
+	color: #68c;
+}
+
+a.code, a.code:visited, a.line, a.line:visited {
+	color: #68c;
+}
+
+a.codeRef, a.codeRef:visited, a.lineRef, a.lineRef:visited {
+	color: #68c;
+}
+
+.contents a:visited {
+	color: #68c;
+}
+
+div.qindex, div.navtab{
+	background-color: #444;
+	border: 1px solid #888;
+}
+
+div.fragment {
+	background-color: #000;
+	border: 1px solid #888;
+}
+
+span.lineno {
+	border-right: 2px solid #0F0;
+	background-color: #000;
+}
+span.lineno a {
+	background-color: #ccc;
+}
+
+span.lineno a:hover {
+	background-color: #aaa;
+}
+
+span.keyword {
+	color: #0d0
+}
+
+span.keywordtype {
+	color: #a86
+}
+
+span.keywordflow {
+	color: #e80
+}
+
+span.comment {
+	color: #d00
+}
+
+span.preprocessor {
+	color: #da6
+}
+
+span.stringliteral {
+	color: #06d
+}
+
+span.charliteral {
+	color: #0dd
+}
+
+.icon {
+    background-color: #68c;
+}
+
+.mdescLeft, .mdescRight,
+.memItemLeft, .memItemRight,
+.memTemplItemLeft, .memTemplItemRight, .memTemplParams {
+	background-color: #333;
+    color: #ddd;
+}
+
+.memSeparator {
+    border-bottom: 1px solid #888;
+}
+
+.memtitle {
+	border-top: 1px solid #888;
+	border-left: 1px solid #888;
+	border-right: 1px solid #888;
+	border-top-right-radius: 4px;
+	border-top-left-radius: 4px;
+	margin-bottom: -1px;
+	background-image: url('');
+	background-repeat: repeat-x;
+	background-color: #444;
+}
+
+.memproto, dl.reflist dt {
+    border-top: 1px solid #888;
+    border-left: 1px solid #888;
+    border-right: 1px solid #888;
+    border-bottom: 1px solid #888;
+    color: #8ae;
+    font-weight: bold;
+    text-shadow: 0px 1px 1px rgba(0, 0, 0, 0.9);
+    background-color: #444;
+}
+
+.memdoc, dl.reflist dd {
+    border-bottom: 1px solid #888;
+    border-left: 1px solid #888;
+    border-right: 1px solid #888;
+    border-top-width: 0;
+    background-image:url('');
+    background-repeat:repeat-x;
+    background-color: #333;
+}
+
+.memTemplParams {
+	color: #68c;
+}
+
+.memtemplate {
+	color: #68c;
+}
+
+.paramname {
+	color: #c88;
+}
+
+td.paramname {
+    padding-right: 16px;
+}
+
+div.directory {
+    border-top: 1px solid #888;
+    border-bottom: 1px solid #888;
+	background-color: #333;
+}
+
+.directory tr.even {
+	background-color: #444;
+}
+
+.directory .levels span {
+	color: #68c;
+}
+
+div.toc h3 {
+	color: #68c;
+}
+
+div.headertitle
+{
+	color: #ddd;
+	background-color: #444;
+}

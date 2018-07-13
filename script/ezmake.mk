@@ -178,15 +178,6 @@ endif
 
 
 
-# TODO: version check python and doxygen
-#ifeq(, $(shell where python3))
-#endif
-
-PYV_FULL = $(wordlist 2,4,$(subst ., ,$(shell python3 --version 2>&1)))
-PYV_MAJOR = $(word 1,${PYV_FULL})
-PYV_MINOR = $(word 2,${PYV_FULL})
-PYV_PATCH = $(word 3,${PYV_FULL})
-
 PERCENT := %
 MAKE = make --no-print-directory
 NULL = echo >/dev/null
@@ -207,18 +198,7 @@ $(DOC_DIR) :
 	mkdir -p $(DOC_DIR)
 	rm -rf $(DOC_DIR)/*
 	$(MAKE) $(SUB_DIR)
-	@# TODO: version check, m.css requires python 3.6+ and doxygen 1.8.14+
-	python $(SUB_DIR)/m.css/doxygen/dox2html5.py .doxyfile
-	cp $(SUB_DIR)/m.css/css/m-dark+doxygen.compiled.css \
-		$(DOC_DIR)/m-dark+doxygen.compiled.css
-	find docs/m-dark+doxygen.compiled.css -type f -exec \
-		sed -i 's/text-indent: 1\.5rem/text-indent: 0rem/g' {} \;	
-	cd $(DOC_DIR) && rm -rf xml/
-	@# To be honest the default latex/pdf style is pretty ugly.
-	@# TODO: make latex/pdf output look more like sphinx/readthedocs
-	@#cd $(DOC_DIR)/latex/ && make && mv refman.pdf ../refman.pdf && \
-		cd ../ && rm -rf latex/
-	cd $(DOC_DIR) && rm -rf latex/
+	doxygen
 
 rtd :
 	$(OPEN) docs/index.html
@@ -246,7 +226,7 @@ run :
 test :
 	@printf "== BEGIN TESTING ==\n"
 	@$(TST_CALL)
-	@printf "\n== END TESTING ==\n"
+	@printf "== END TESTING ==\n"
 
 
 
