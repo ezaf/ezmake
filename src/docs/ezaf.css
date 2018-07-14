@@ -208,6 +208,20 @@ table.fieldtable {
         border-bottom: 1px solid #888;
 }
 
+table.doxtable {
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+table.doxtable td, table.doxtable th {
+	border: 1px solid #666;
+}
+
+table.doxtable th {
+	background-color: #444;
+	color: #ddd;
+}
+
 div.directory {
     border-top: 1px solid #888;
     border-bottom: 1px solid #888;
