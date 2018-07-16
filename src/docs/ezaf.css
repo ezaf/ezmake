@@ -200,7 +200,7 @@ table.fieldtable {
         border-bottom: 1px solid #888;
 }
 
-.fieldtable th {
+.fieldtable th, th.markdownTableHeadLeft, th.markdownTableHeadRight, th.markdownTableHeadCenter, th.markdownTableHeadNone {
         background-image:url('');
         background-repeat:repeat-x;
         background-color: #444;
@@ -213,7 +213,7 @@ table.doxtable {
     margin-bottom: 8px;
 }
 
-table.doxtable td, table.doxtable th {
+table.doxtable td, table.doxtable th, table.doxtable th, table.markdownTable td, table.markdownTable th {
 	border: 1px solid #666;
 }
 
