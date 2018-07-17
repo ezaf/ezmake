@@ -230,7 +230,7 @@ test :
 
 
 
-CLEAN = $(BLD_DIR) $(DOC_DIR) $(SUB_DIR)
+CLEAN = $(BLD_DIR) $(DOC_DIR)
 CLEAN_COMMAND = $(foreach DIR,$(CLEAN),rm -rf $(DIR)/* && )$(NULL)
 
 clean :
