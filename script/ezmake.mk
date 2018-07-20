@@ -260,13 +260,13 @@ module : # Usage example: `make module F=ezhello`
 	mkdir -p $(INC_DIR)/$(LIB_SUBDIR)/`dirname $(F)`
 	mkdir -p $(SRC_DIR)/$(LIB_SUBDIR)/`dirname $(F)`
 	@printf "\
-	/** $(F).$(H)\n\
+	/*  $(F).$(H)\n\
 	 *  \n\
 	$(LICENSE)\n\
 	 */\n\
 	\n\
-	#ifndef `basename $(F) | awk '{print toupper($$0)}'`_H\n\
-	#define `basename $(F) | awk '{print toupper($$0)}'`_H\n\
+	#ifndef `basename $(F) | awk '{print toupper($$0)}'`_`echo $(H) | awk '{print toupper($$0)}'`\n\
+	#define `basename $(F) | awk '{print toupper($$0)}'`_`echo $(H) | awk '{print toupper($$0)}'`\n\
 	\n\
 	/** @file       $(F).$(H)\n\
 	 *  @brief      Lorem ipsum\n\
@@ -301,7 +301,7 @@ module : # Usage example: `make module F=ezhello`
 	}\n\
 	#endif\n\
 	\n\
-	#endif /* `basename $(F) | awk '{print toupper($$0)}'`_H */\
+	#endif /* `basename $(F) | awk '{print toupper($$0)}'`_`echo $(H) | awk '{print toupper($$0)}'` */\
 	" >> $(INC_DIR)/$(LIB_SUBDIR)/$(F).$(H)
 	@printf "\
 	/*  $(F).$(C)\n\
@@ -320,6 +320,89 @@ module : # Usage example: `make module F=ezhello`
 	" >> $(SRC_DIR)/$(LIB_SUBDIR)/$(F).$(C)
 	vim -O $(SRC_DIR)/$(LIB_SUBDIR)/$(F).$(C) $(INC_DIR)/$(LIB_SUBDIR)/$(F).$(H)
 
+class : # Usage example: `make class F=EzHello`
+	mkdir -p $(INC_DIR)/$(LIB_SUBDIR)/`dirname $(F)`
+	mkdir -p $(SRC_DIR)/$(LIB_SUBDIR)/`dirname $(F)`
+	@printf "\
+	/*  $(F).$(HPP)\n\
+	 *  \n\
+	$(LICENSE)\n\
+	 */\n\
+	\n\
+	#ifndef `basename $(F) | awk '{print toupper($$0)}'`_`echo $(HPP) | awk '{print toupper($$0)}'`\n\
+	#define `basename $(F) | awk '{print toupper($$0)}'`_`echo $(HPP) | awk '{print toupper($$0)}'`\n\
+	\n\
+	/** @file       $(F).$(HPP)\n\
+	 *  @brief      Lorem ipsum\n\
+	 *  @details    Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n\
+	 */\n\
+	\n\
+	// #include <memory>\n\
+	\n\
+	\n\
+	\n\
+	/** @brief      Lorem ipsum\n\
+	 *  @details    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do\n\
+	 *              eiusmod tempor incididunt ut labore et dolore magna aliqua.\n\
+	 */\n\
+	class $(F)\n\
+	{\n\
+	public:\n\
+	    /** @brief      Lorem ipsum\n\
+	     *  @details    Lorem ipsum dolor sit amet, consectetur adipiscing\n\
+	     *              elit, sed do eiusmod tempor incididunt ut labore et\n\
+	     *              dolore magna aliqua.\n\
+	     */\n\
+	    $(F)();\n\
+	    $(F)($(F) const &other);\n\
+	    $(F)& $(F)::operator=($(F) const &other);\n\
+	    virtual ~$(F)();\n\
+	\n\
+	protected:\n\
+	\n\
+	private:\n\
+	\n\
+	};\n\
+	\n\
+	\n\
+	\n\
+	#endif /* `basename $(F) | awk '{print toupper($$0)}'`_`echo $(HPP) | awk '{print toupper($$0)}'` */\
+	" >> $(INC_DIR)/$(LIB_SUBDIR)/$(F).$(HPP)
+	@printf "\
+	/*  $(F).$(CPP)\n\
+	 *  \n\
+	$(LICENSE)\n\
+	 */\n\
+	\n\
+	#include \"$(LIB_SUBDIR)/$(F).$(HPP)\"\n\
+	\n\
+	\n\
+	\n\
+	$(F)::$(F)()\n\
+	{\n\
+	}\n\
+	\n\
+	\n\
+	\n\
+	$(F)::$(F)($(F) const &other)\n\
+	{\n\
+	}\n\
+	\n\
+	\n\
+	\n\
+	$(F)& $(F)::operator=($(F) const &other)\n\
+	{\n\
+	}\n\
+	\n\
+	\n\
+	\n\
+	$(F)::~$(F)()\n\
+	{\n\
+	}\
+	" >> $(SRC_DIR)/$(LIB_SUBDIR)/$(F).$(CPP)
+	vim -O $(SRC_DIR)/$(LIB_SUBDIR)/$(F).$(CPP) $(INC_DIR)/$(LIB_SUBDIR)/$(F).$(HPP)
+
+
 main : # Usage example: `make main F=test_hello T=say_hello`
 	mkdir -p $(SRC_DIR)/$(F)
 	if [ $(T) ]; then mkdir -p $(TST_DIR)/$(F); fi
@@ -335,6 +418,7 @@ main : # Usage example: `make main F=test_hello T=say_hello`
 	 */\n\
 	\n\
 	#include <stdio.h>\n\
+	/* #include <cstdio> */\n\
 	\n\
 	\n\
 	\n\
