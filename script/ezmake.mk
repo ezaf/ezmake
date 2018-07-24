@@ -324,15 +324,19 @@ class : # Usage example: `make class F=EzHello`
 	mkdir -p $(INC_DIR)/$(LIB_SUBDIR)/`dirname $(F)`
 	mkdir -p $(SRC_DIR)/$(LIB_SUBDIR)/`dirname $(F)`
 	@printf "\
-	/*  $(F).$(HPP)\n\
+	/*  $(LIB_SUBDIR)/$(F).$(HPP)\n\
 	 *  \n\
 	$(LICENSE)\n\
 	 */\n\
 	\n\
-	#ifndef `basename $(F) | awk '{print toupper($$0)}'`_`echo $(HPP) | awk '{print toupper($$0)}'`\n\
-	#define `basename $(F) | awk '{print toupper($$0)}'`_`echo $(HPP) | awk '{print toupper($$0)}'`\n\
+	#ifndef `echo $(LIB_SUBDIR) | awk '{print toupper($$0)}'`_\
+	`basename $(F) | awk '{print toupper($$0)}'`_\
+	`echo $(HPP) | awk '{print toupper($$0)}'`\n\
+	#define `echo $(LIB_SUBDIR) | awk '{print toupper($$0)}'`_\
+	`basename $(F) | awk '{print toupper($$0)}'`_\
+	`echo $(HPP) | awk '{print toupper($$0)}'`\n\
 	\n\
-	/** @file       $(F).$(HPP)\n\
+	/** @file       $(LIB_SUBDIR)/$(F).$(HPP)\n\
 	 *  @brief      Lorem ipsum\n\
 	 *  @details    Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n\
 	 */\n\
@@ -340,6 +344,9 @@ class : # Usage example: `make class F=EzHello`
 	// #include <memory>\n\
 	\n\
 	\n\
+	\n\
+	namespace $(LIB_SUBDIR)\n\
+	{\n\
 	\n\
 	/** @brief      Lorem ipsum\n\
 	 *  @details    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do\n\
@@ -364,17 +371,24 @@ class : # Usage example: `make class F=EzHello`
 	\n\
 	};\n\
 	\n\
+	}; /* namespace EzSDL */\n\
 	\n\
 	\n\
-	#endif /* `basename $(F) | awk '{print toupper($$0)}'`_`echo $(HPP) | awk '{print toupper($$0)}'` */\
+	\n\
+	#endif /* `echo $(LIB_SUBDIR) | awk '{print toupper($$0)}'`_\
+	`basename $(F) | awk '{print toupper($$0)}'`_\
+	`echo $(HPP) | awk '{print toupper($$0)}'` */\
 	" >> $(INC_DIR)/$(LIB_SUBDIR)/$(F).$(HPP)
 	@printf "\
-	/*  $(F).$(CPP)\n\
+	/*  $(LIB_SUBDIR)/$(F).$(CPP)\n\
 	 *  \n\
 	$(LICENSE)\n\
 	 */\n\
 	\n\
 	#include \"$(LIB_SUBDIR)/$(F).$(HPP)\"\n\
+	\n\
+	namespace $(LIB_SUBDIR)\n\
+	{\n\
 	\n\
 	\n\
 	\n\
@@ -398,7 +412,11 @@ class : # Usage example: `make class F=EzHello`
 	\n\
 	$(F)::~$(F)()\n\
 	{\n\
-	}\
+	}\n\
+	\n\
+	\n\
+	\n\
+	}; /* namespace $(LIB_SUBDIR) */\
 	" >> $(SRC_DIR)/$(LIB_SUBDIR)/$(F).$(CPP)
 	vim -O $(SRC_DIR)/$(LIB_SUBDIR)/$(F).$(CPP) $(INC_DIR)/$(LIB_SUBDIR)/$(F).$(HPP)
 
