@@ -362,7 +362,7 @@ class : # Usage example: `make class F=EzHello`
 	     */\n\
 	    $(F)();\n\
 	    $(F)($(F) const &other);\n\
-	    $(F)& $(F)::operator=($(F) const &other);\n\
+	    $(F)& operator=($(F) const &other);\n\
 	    virtual ~$(F)();\n\
 	\n\
 	protected:\n\
