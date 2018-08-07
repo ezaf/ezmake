@@ -102,8 +102,7 @@ endif
 # Figure out compile and run targets based on compiler
 # TODO: When adding multiple-projects compiling, change COMPILE's RUNs
 ifeq ($(CC), emcc)
-	CF = -O3
-	LF =
+	CF += --preload-file $(DAT_DIR)
 	ifneq (, $(findstring sdl2, $(PKGS)))
 		LF += -s USE_SDL=2
 	endif
