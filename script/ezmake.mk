@@ -158,8 +158,8 @@ $(SUB_DIR) : FORCE
 	git submodule update --init --remote --force
 
 $(BIN_DIR)/%.$(DYN_EXT) : % $(BIN_DIR)
-	@if [[ $$($(MAKE) $(SRC_DIR)/$<) = *"is up to date."* ]] && \
-		[[ -f $(ROOT)/$@ ]]; then \
+	@if [ $$($(MAKE) $(SRC_DIR)/$<) = *"is up to date."* ] && \
+		[ -f $(ROOT)/$@ ]; then \
 		echo "make[$(MAKELEVEL)]: '$(ROOT)/$@' is up to date."; \
 	else \
 		echo "$(CC) $(CF) -shared \
@@ -176,16 +176,16 @@ $(INC_DIR)/% : % $(INC_DIR)
 	@mkdir -p $@
 	@$(foreach EXT,$(INC_EXTS), \
 		$(foreach FILE,$(wildcard $(ROOT)/$(SRC_DIR)/$</*.$(EXT)), \
-			if [[ $$(diff -N $(FILE) \
-					$(patsubst ./$(SRC_DIR)%,./$(INC_DIR)%,$(FILE))) ]]; then \
+			if [ $$(diff -N $(FILE) \
+					$(patsubst ./$(SRC_DIR)%,./$(INC_DIR)%,$(FILE))) ]; then \
 				echo "cp $(FILE) \
 $(patsubst ./$(SRC_DIR)%,./$(INC_DIR)%,$(FILE))"; \
 				cp $(FILE) $(patsubst ./$(SRC_DIR)%,./$(INC_DIR)%,$(FILE)); \
 			fi))
 
 $(LIB_DIR)/lib%.a : % $(LIB_DIR)
-	@if [[ $$($(MAKE) $(SRC_DIR)/$<) = *"is up to date."* ]] && \
-		[[ -f $(ROOT)/$@ ]]; then \
+	@if [ $$($(MAKE) $(SRC_DIR)/$<) = *"is up to date."* ] && \
+		[ -f $(ROOT)/$@ ]; then \
 		echo "make[$(MAKELEVEL)]: '$(ROOT)/$@' is up to date."; \
 	else \
 		echo "ar rcs $@ $$(find $(ROOT)/$(SRC_DIR)/$< -name "*.o")"; \
@@ -201,30 +201,30 @@ mode-main = \
 	uptodate=0; modules=0; \
 	output=$$($(MAKE) $(BIN_DIR)); \
 	echo "$$output"; \
-	if [[ $$output = *"is up to date." ]]; then \
+	if [ $$output = *"is up to date." ]; then \
 		let "uptodate+=1"; fi; \
 	output=$$($(MAKE) $(SRC_DIR)/$(2)); \
 	echo "$$output"; \
-	if [[ $$output = *"is up to date." ]]; then \
+	if [ $$output = *"is up to date." ]; then \
 		let "uptodate+=1"; fi; \
 	for MOD in $(MODULES); do \
 		let "modules+=1"; \
 		output=$$($(MAKE) $(1)-$$MOD); \
 		echo "$$output"; \
-		if [[ $$output = *"is up to date." ]]; then \
+		if [ $$output = *"is up to date." ]; then \
 			let "uptodate+=1"; fi; \
 	done; \
 	let "uptodate-=2"; \
-	if [[ uptodate -eq modules ]] && \
-		[[ -x $(ROOT)/$(BIN_DIR)/$(1)-$(2) ]]; then \
+	if [ uptodate -eq modules ] && \
+		[ -x $(ROOT)/$(BIN_DIR)/$(1)-$(2) ]; then \
 		echo "make[$(MAKELEVEL)]: '$(ROOT)/$(BIN_DIR)/$(1)-$(2)' \
 is up to date."; \
 	else \
-		if [[ static == $(1) ]]; then \
+		if [ static == $(1) ]; then \
 			dir=$(LIB_DIR); \
 			pre=lib; \
 			ext=a; fi; \
-		if [[ dynamic == $(1) ]]; then \
+		if [ dynamic == $(1) ]; then \
 			dir=$(BIN_DIR); \
 			pre=; \
 			ext=$(DYN_EXT); fi; \
@@ -291,10 +291,10 @@ RUNEXEDYN = $(ROOT)/$(BIN_DIR)/dynamic-$(RUN)
 
 run : FORCE
 	$(DATCPY)
-	@if [[ -x "$(RUNEXEDYN)" ]]; then \
+	@if [ -x "$(RUNEXEDYN)" ]; then \
 		echo "$(RUNEXEDYN)" && \
 		$(RUNEXEDYN); \
-	elif [[ -x "$(RUNEXESTA)" ]]; then \
+	elif [ -x "$(RUNEXESTA)" ]; then \
 		echo "$(RUNEXESTA)" && \
 		$(RUNEXESTA); \
 	else \
@@ -307,11 +307,11 @@ rtd : FORCE
 	@#$(OPEN) $(ROOT)/$(DOC_DIR)/refman.pdf
 
 clean-% : FORCE
-	@if [[ $(patsubst clean-%,%,$@) = $(DAT_DIR) ]] || \
-		[[ $(patsubst clean-%,%,$@) = $(TST_DIR) ]]; then \
+	@if [ $(patsubst clean-%,%,$@) = $(DAT_DIR) ] || \
+		[ $(patsubst clean-%,%,$@) = $(TST_DIR) ]; then \
 		echo "I doubt you want to clean $(ROOT)/$(patsubst clean-%,%,$@). \
 If you *really* want to, do it manually."; \
-	elif [[ $(patsubst clean-%,%,$@) = $(SRC_DIR) ]]; then \
+	elif [ $(patsubst clean-%,%,$@) = $(SRC_DIR) ]; then \
 		echo "find $(ROOT)/$(SRC_DIR) -type f -name "*.o" -delete"; \
 		find $(ROOT)/$(SRC_DIR) -type f -name "*.o" -delete; \
 	else \
