@@ -1,12 +1,9 @@
-/** @file       ezhello.h
- *  @brief      A simple demonstration of how to write, document and include
- *              header files in EzMake.
- *  
- *  <!-------------------------------------------------------------------------
+/*  test_hello/main.c
+ *
  *  Copyright (c) 2018 Kirk Lange <github.com/kirklange>
- *  
+ *
  *  This software is provided 'as-is', without any express or implied
- *  warranty.  In no event will the authors be held liable for any damages
+ *  warranty. In no event will the authors be held liable for any damages
  *  arising from the use of this software.
  *
  *  Permission is granted to anyone to use this software for any purpose,
@@ -20,31 +17,18 @@
  *  2. Altered source versions must be plainly marked as such, and must not be
  *     misrepresented as being the original software.
  *  3. This notice may not be removed or altered from any source distribution.
- *  -------------------------------------------------------------------------->
  */
 
-#ifndef EZHELLO_H
-#define EZHELLO_H
+/** @file       main.c
+ *  @brief      Test only `ezhello`
+ */
 
-#ifdef __cplusplus
-extern "C"
+#include "ezhello/ezhello.h"
+
+
+
+int main(int argc, char *argv[])
 {
-#endif
-
-
-
-/**
- *  @brief      Say hello to whoever you want!
- *  @param      subject    String indicating to whom we are saying hello to.
- *  @return     `void`, what did you expect?
- *  @details    Concatenates `"Hello "`, the `subject` parameter, and `"!\n"`.
- */
-void ezhello_printHelloTo(const char *subject);
-
-
-
-#ifdef __cplusplus
+    ezhello_say_to("Billy-Bob-Joe");
+    return 0;
 }
-#endif
-
-#endif /* EZHELLO_H */

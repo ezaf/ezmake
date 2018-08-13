@@ -24,21 +24,19 @@
 ##############################  Standard Options  #############################
 ###############################################################################
 
-# Name for your shared library code.
-LIB_NAME = ezhello
+# Directories within ./src of your library code.
+# Each subdirectory gets built into its own shared library, assuming that MODE
+# is set to dynamic.
+MODULES = ezhello ezgoodbye
 
-# Directories within /src of your library code.
-# Code in these subdirectories are meant to be shared among all apps and tests.
-LIB_SUBDIR = EzHello
-
-# Directories within /src of the apps and tests that you want to build.
-MAIN_SUBDIRS = test_hello main_hellochat #test_glfw
+# Directories within ./src of the apps and tests that you want to build.
+MAINS = test_hello test_both main_chat #test_glfw
 
 # Name of the application(s) you want to test when you call `make test`.
-TEST = test_hello main_hellochat
+TEST = test_hello test_both
 
 # Name of the application (singular!) you want to run when you call `make run`.
-RUN = main_hellochat
+RUN = main_chat
 
 # Packages that you want to include in your project.
 # If `pkg-config` cannot find the package, `-I$(PREFIX)/include/$(PKG)` and
@@ -47,16 +45,13 @@ RUN = main_hellochat
 # case for your library. Commented out are examples.
 PKGS = #glfw3 gtk+-3.0 sdl2 SDL2_image
 
-# Needed submodule include directories within /sub
-SUB_INC_DIRS =
-
-# Needed submodule source directories within /sub
-SUB_SRC_DIRS =
+# Needed submodule include and/or source directories within ./sub
+SUB_SUBDIRS =
 
 # If the submodule has its test source files in the same directory as its
 # actual API source files (facepalm), then you may want to manually specify
 # individual source files here (including the file extension).
-SUB_SRC_FILES =
+SUB_FILES =
 
 
 
@@ -68,11 +63,6 @@ SUB_SRC_FILES =
 CC = gcc
 #CC = emcc
 
-# Compile API code to a dynamic (shared) library or static library.
-# When using dynamic mode, beware of DLL Hell.
-MODE = static
-#MODE = dynamic
-
 # C-Flags and library (`-l` only) settings
 # In many cases the order in which your `-l`s appear matters! One limitation of
 # EzMake is that we assume all tests/mains use the same compiler flags. If this
@@ -80,19 +70,20 @@ MODE = static
 CF = -std=c11 -O3 -w
 LF = #-lOpenGL32 -lglew32
 
+# Include file extensions you want moved to ./include
+INC_EXTS = h hpp
+
 # Source file extensions you want compiled.
-SRC_EXTS = c #cpp
+SRC_EXTS = c cpp
 
 # Location(s) where EzMake should look for `include` and `lib` subdirectories
 # No biggie if the directory doesn't exist.
 PREFIXES = /usr /mingw64 /mingw32 $$HOME
 
-# Project root directory
+# WARNING: Changing these may cause a lot of headache!
+# Project root directory and submodule directory
 ROOT = .
-
-# Submodule directory
-# WARNING: Changing this may cause a lot of headache!
-SUB_DIR = $(ROOT)/sub
+SUB_DIR = sub
 
 
 
@@ -112,10 +103,11 @@ init :
 	@rm -rf $(SUB_DIR)/ezmake
 	@rm -rf .git/modules/$(SUB_DIR)/ezmake
 	@git rm -r --cached --ignore-unmatch $(SUB_DIR)/ezmake
-	git submodule add -f https://github.com/ezaf/ezmake.git $(SUB_DIR)/ezmake
+	@git submodule add -f https://github.com/ezaf/ezmake.git $(SUB_DIR)/ezmake
 	@rm -f script/ezmake.mk
 	@rm -f script/ezmake_open.sh
 	@mkdir -p script
 	@rmdir --ignore-fail-on-non-empty script
+	git submodule update --init --remote --force
 
 -include $(SUB_DIR)/ezmake/script/ezmake.mk
