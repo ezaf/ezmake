@@ -27,13 +27,13 @@
 # Directories within ./src of your library code.
 # Each subdirectory gets built into its own shared library, assuming that MODE
 # is set to dynamic.
-MODULES = ezhello ezgoodbye
+MODULES = ezhello ezgoodbye ezboth
 
 # Directories within ./src of the apps and tests that you want to build.
-MAINS = test_hello test_both main_chat #test_glfw
+MAINS = test_hello main_chat #test_glfw
 
 # Name of the application(s) you want to test when you call `make test`.
-TEST = test_hello test_both
+TEST = test_hello main_chat
 
 # Name of the application (singular!) you want to run when you call `make run`.
 RUN = main_chat
