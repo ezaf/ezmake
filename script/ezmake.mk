@@ -25,52 +25,41 @@
 #ROOT = ../
 
 # Binaries
-BIN_DIR = $(ROOT)/bin
-# Build
-BLD_DIR = $(ROOT)/build
+BIN_DIR = bin
 # Data (config, textures, etc)
-DAT_DIR = $(ROOT)/data
+DAT_DIR = data
 # Documentation
-DOC_DIR = $(ROOT)/docs
+DOC_DIR = docs
+# Emscripten Builds
+EMC_DIR = $(BIN_DIR)
+# Copied header files
+INC_DIR = include
+# Libraries
+LIB_DIR = lib
+# Source
+SRC_DIR = src
 # External (git submodule) directory
 # Should be set by "includer" Makefile
-#SUB_DIR = $(ROOT)/sub
-# Include
-INC_DIR = $(ROOT)/include
-# Libraries
-LIB_DIR = $(ROOT)/lib
-# Projects, examples, and tests
-PRJ_DIR = $(ROOT)/src
-# Source
-SRC_DIR = $(ROOT)/src
+#SUB_DIR = sub
 # Tests
-TST_DIR = $(ROOT)/test
+TST_DIR = test
 
-
-
-# Add source directory and file extensions to source file names.
-SHARED_OBJS = \
-	$(foreach OBJ,$(SUB_SRC_FILES),$(SUB_DIR)/$(OBJ)) \
-	$(foreach EXT,$(SRC_EXTS), \
-		$(foreach DIR,$(SUB_SRC_DIRS), \
-				$(wildcard $(SUB_DIR)/$(DIR)/*.$(EXT))) \
-		$(foreach DIR,$(LIB_SUBDIR), \
-				$(wildcard $(SRC_DIR)/$(DIR)/*.$(EXT))) )
-
-MAIN_OBJS = \
-	$(foreach EXT,$(SRC_EXTS), \
-		$(foreach DIR,$(MAIN_SUBDIRS), \
-				$(wildcard $(PRJ_DIR)/$(DIR)/*.$(EXT))) )
+# Source subdirecties
+SRC_SUBDIRS_MAIN = $(foreach DIR,$(MAINS),$(SRC_DIR)/$(DIR))
+SRC_SUBDIRS_MODULE = $(foreach DIR,$(MODULES),$(SRC_DIR)/$(DIR))
+SRC_SUBDIRS_ALL = $(SRC_SUBDIRS_MAIN) $(SRC_SUBDIRS_MODULE) \
+			  $(foreach DIR,$(SUB_SUBDIRS),$(SUB_DIR)/$(DIR))
 
 # Include and library flags
-INC = -I$(INC_DIR) $(foreach DIR,$(SUB_INC_DIRS),-I$(SUB_DIR)/$(DIR)) \
-	  $(foreach DIR,$(PREFIXES),-I$(DIR)/include)
-LIB = $(foreach DIR,$(PREFIXES),-L$(DIR)/lib)
+CF = -fPIC -I$(ROOT)/$(SRC_DIR) \
+	 $(foreach DIR,$(SUB_SUBDIRS),-I$(ROOT)/$(SUB_DIR)/$(DIR)) \
+	 $(foreach DIR,$(PREFIXES),-I$(DIR)/include)
+LF += $(foreach DIR,$(PREFIXES),-L$(DIR)/lib)
 
 # Package flags
 ifneq ($(PKGS),)
-	PCF = `pkg-config --cflags --silence-errors $(PKGS)`
-	PLF = `pkg-config --libs --silence-errors $(PKGS)`
+	CF += `pkg-config --cflags --silence-errors $(PKGS)`
+	LF += `pkg-config --libs --silence-errors $(PKGS)`
 endif
 
 # Find what OS we're on so we can better configure all the compiler options.
@@ -96,146 +85,219 @@ endif
 ifneq (, $(shell uname -s | grep -E Darwin))
 	CULT = macos
 	DYN_EXT = dylib
-	# TODO: test on MacOS
+	# TODO: determine OPEN on MacOS
 endif
 
 # Figure out compile and run targets based on compiler
 # TODO: When adding multiple-projects compiling, change COMPILE's RUNs
 ifeq ($(CC), emcc)
-	CF += --preload-file $(DAT_DIR)
-	ifneq (, $(findstring sdl2, $(PKGS)))
+	CF += --preload-file $(ROOT)/$(DAT_DIR)
+	ifneq (,$(findstring sdl2, $(PKGS)))
 		LF += -s USE_SDL=2
 	endif
-	ifneq (, $(findstring SDL_image, $(PKGS)))
+	ifneq (,$(findstring SDL_image, $(PKGS)))
 		LF += -s USE_SDL_IMAGE=2
 	endif
-	ifneq (, $(findstring SDL_ttf, $(PKGS)))
+	ifneq (,$(findstring SDL_ttf, $(PKGS)))
 		LF += -s USE_SDL_TTF=2
 	endif
-	ifneq (, $(findstring SDL_net, $(PKGS)))
+	ifneq (,$(findstring SDL_net, $(PKGS)))
 		LF += -s USE_SDL_NET=2
 	endif
 
 	COMPILE = \
-		$(foreach MAIN,$(MAIN_SUBDIRS), \
-			$(CC) $(SHARED_OBJS) \
+		$(foreach DIR,$(SRC_SUBDIRS_MAIN), \
+			$(CC) $(CF) -I$(ROOT)/$(SRC_DIR)/$(DIR) \
 			$(foreach EXT,$(SRC_EXTS), \
-					$(wildcard $(PRJ_DIR)/$(MAIN)/*.$(EXT)) ) \
-			-I$(PRJ_DIR)/$(MAIN) $(INC) $(CF) $(LF) \
-			-o $(BLD_DIR)/$(MAIN)/$(MAIN).html && \
-		)$(NULL)
+				$(wildcard $(ROOT)/$(SRC_DIR)/$(DIR)/*.$(EXT)) ) \
+			$(LF) -o $(ROOT)/$(EMC_DIR)/$(MAIN).html && ) $(NULL)
 
-	RUN_CALL = $(OPEN) $(BLD_DIR)/$(RUN)/$(RUN).html
-else
-
-	COMPILE = \
-		$(foreach MAIN,$(MAIN_SUBDIRS), \
-				mkdir -p $(BLD_DIR)/$(MAIN) && \
-				cp -R $(DAT_DIR) $(BLD_DIR)/$(MAIN)/ && ) \
-		$(CC) $(SHARED_OBJS) $(INC) $(LIB) $(PCF) $(CF) $(LF)
-
-	ifeq ($(MODE), dynamic)
-		LIB_OUT = $(BIN_DIR)/$(LIB_NAME).$(DYN_EXT)
-
-		COMPILE += -shared -fPIC -o $(LIB_OUT) $(PLF) && \
-			$(foreach MAIN,$(MAIN_SUBDIRS), \
-					cp -R $(LIB_OUT) $(BLD_DIR)/$(MAIN)/ && ) \
-			$(foreach MAIN,$(MAIN_SUBDIRS), \
-				$(CC) \
-				$(foreach EXT,$(SRC_EXTS), \
-						$(wildcard $(PRJ_DIR)/$(MAIN)/*.$(EXT))) \
-				-I$(PRJ_DIR)/$(MAIN) \
-				$(INC) $(LIB) $(PCF) $(CF) $(LF) $(LIB_OUT) \
-				-o $(BLD_DIR)/$(MAIN)/$(MAIN) $(PLF) && \
-			)$(NULL)
-	else
-		COMPILE += -c $(PLF) && \
-			ar rcs $(LIB_DIR)/lib$(LIB_NAME).a *.o && \
-			rm *.o && \
-			$(foreach MAIN,$(MAIN_SUBDIRS), \
-				$(CC) \
-				$(foreach EXT,$(SRC_EXTS), \
-					$(wildcard $(PRJ_DIR)/$(MAIN)/*.$(EXT))) \
-				-I$(PRJ_DIR)/$(MAIN) \
-				$(INC) $(LIB) -L$(LIB_DIR) -l$(LIB_NAME) $(PCF) $(CF) $(LF) \
-				-o $(BLD_DIR)/$(MAIN)/$(MAIN) $(PLF) && \
-			)$(NULL)
-	endif
-
-	RUN_CALL = $(BLD_DIR)/$(RUN)/$(RUN)
-	TST_CALL = $(foreach T,$(TEST), \
-				   $(foreach INPUT, \
-						$(if $(wildcard $(TST_DIR)/$(T)/*), \
-							$(wildcard $(TST_DIR)/$(T)/*), \
-							/dev/null), \
-						echo && \
-						echo "== $(T) < $(notdir $(INPUT)) ==" && \
-						$(BLD_DIR)/$(T)/$(T) < $(INPUT) && \
-						echo &&\
-					))$(NULL)
+	RUN_CALL = $(OPEN) $(ROOT)/$(EMC_DIR)/$(RUN).html
 endif
 
-
-
-PERCENT := %
 MAKE = make --no-print-directory
 NULL = echo >/dev/null
 
 
 
-.PHONY: help all open $(DOC_DIR) $(SUB_DIR) $(BLD_DIR) rtd run test clean
+.PHONY: $(MODULES) $(MAINS) $(SRC_SUBDIRS_ALL)
+.PHONY: help static-all dynamic-all all test run rtd clean-all clean open
+.PHONY: module class
 
 help :
-	@printf "\nTODO: describe make targets\n"
+	@echo "TODO: Write help documentation."
 
-all :
-	$(MAKE) $(DOC_DIR)
-	$(MAKE) compile
-	$(MAKE) run
+$(MODULES) $(MAINS) :
+	@# Nothing needed here.
+
+%.o : %.c
+	$(CC) $(CF) -c $< -o $@
+
+%.o : %.cc
+	$(CC) $(CF) -c $< -o $@
+
+%.o : %.cxx
+	$(CC) $(CF) -c $< -o $@
+
+%.o : %.cpp
+	$(CC) $(CF) -c $< -o $@
+
+%.o : %.c++
+	$(CC) $(CF) -c $< -o $@
+
+$(BIN_DIR) $(DAT_DIR) $(INC_DIR) $(LIB_DIR) $(SRC_DIR) :
+	mkdir -p $(ROOT)/$@
 
 $(DOC_DIR) :
-	mkdir -p $(DOC_DIR)
-	rm -rf $(DOC_DIR)/*
-	$(MAKE) $(SUB_DIR)
+	mkdir -p $(ROOT)/$(DOC_DIR)
+	rm -rf $(ROOT)/$(DOC_DIR)/*
+	@$(MAKE) $(SUB_DIR)
 	doxygen
 
-rtd :
-	$(OPEN) docs/index.html
-	@#$(OPEN) docs/refman.pdf
-
 $(SUB_DIR) :
-	git submodule init
-	git submodule update
+	mkdir -p $(ROOT)/$@
+	git submodule update --init --remote --force
 
-$(BLD_DIR) :
-	mkdir -p $(BLD_DIR)
-	mkdir -p $(DAT_DIR)
-	$(MAKE) compile
+$(BIN_DIR)/%.$(DYN_EXT) : % $(BIN_DIR)
+	@if [[ $$($(MAKE) $(SRC_DIR)/$<) = *"is up to date."* ]] && \
+		[[ -f $(ROOT)/$@ ]]; then \
+		echo "make: '$(ROOT)/$@' is up to date."; \
+	else \
+		echo "$(CC) $(CF) -shared \
+$$(find $(ROOT)/$(SRC_DIR)/$< -name \"*.o\") -o $(ROOT)/$@;" && \
+		$(CC) $(CF) -shared \
+			$$(find $(ROOT)/$(SRC_DIR)/$< -name "*.o") -o $(ROOT)/$@; \
+	fi
 
-compile : $(SHARED_OBJS) $(MAIN_OBJS)
-	mkdir -p $(BIN_DIR)
-	mkdir -p $(LIB_DIR)
-	$(COMPILE)
+$(INC_DIR)/% : % $(INC_DIR)
+	@mkdir -p $@
+	$(foreach EXT,$(INC_EXTS), \
+		$(foreach FILE,$(wildcard $(ROOT)/$(SRC_DIR)/$</*.$(EXT)), \
+			cp -u $(FILE) $(patsubst ./$(SRC_DIR)%,./$(INC_DIR)%,$(FILE))))
 
-run :
-	@echo
-	$(RUN_CALL)
-	@echo
+$(LIB_DIR)/lib%.a : % $(LIB_DIR)
+	@if [[ $$($(MAKE) $(SRC_DIR)/$<) = *"is up to date."* ]] && \
+		[[ -f $(ROOT)/$@ ]]; then \
+		echo "make: '$(ROOT)/$@' is up to date."; \
+	else \
+		echo "ar rcs $@ $$(find $(ROOT)/$(SRC_DIR)/$< -name \"*.o\")" && \
+		ar rcs $@ $$(find $(ROOT)/$(SRC_DIR)/$< -name "*.o"); \
+	fi
+
+$(SRC_SUBDIRS_ALL) :
+	@$(foreach EXT,$(SRC_EXTS), \
+		$(foreach FILE,$(wildcard $@/*.$(EXT)), \
+			$(MAKE) $(patsubst %.$(EXT),%.o,$(FILE))))
+
+# Where % is one of MODULES or MAINS
+static-% : %
+	@$(if $(findstring $<,$(MODULES)), \
+		$(MAKE) $(LIB_DIR)/lib$<.a && \
+		$(MAKE) $(INC_DIR)/$<)
+	@# Two ifs so that the last one isn't silenced
+	@$(if $(findstring $<,$(MAINS)), \
+		$(MAKE) $(BIN_DIR) && \
+		$(MAKE) $(SRC_DIR)/$< && \
+		$(foreach MOD,$(MODULES), \
+			$(MAKE) static-$(MOD) && ) $(NULL))
+	$(if $(findstring $<,$(MAINS)), \
+		$(CC) $(CF) $$(find $(ROOT)/$(SRC_DIR)/$< -type f -name "*.o") \
+			$(foreach MOD,$(MODULES), \
+				$(ROOT)/$(LIB_DIR)/lib$(MOD).a) \
+			-o $(ROOT)/$(BIN_DIR)/static-$<)
+
+# Where % is one of MODULES or MAINS
+dynamic-% : %
+	@$(if $(findstring $<,$(MODULES)), \
+		$(MAKE) $(BIN_DIR)/$<.$(DYN_EXT) && \
+		$(MAKE) $(INC_DIR)/$<)
+	@# Two ifs so that the last one isn't silenced
+	@$(if $(findstring $<,$(MAINS)), \
+		$(MAKE) $(BIN_DIR) && \
+		$(MAKE) $(SRC_DIR)/$< && \
+		$(foreach MOD,$(MODULES), \
+			$(MAKE) dynamic-$(MOD) && ) $(NULL))
+	$(if $(findstring $<,$(MAINS)), \
+		$(CC) $(CF) $$(find $(ROOT)/$(SRCDIR)/$< -type f -name "*.o") \
+			$(foreach MOD,$(MODULES), \
+				$(ROOT)/$(BIN_DIR)/$(MOD).$(DYN_EXT)) \
+			-o $(ROOT)/$(BIN_DIR)/dynamic-$<)
+
+static-all :
+	@$(foreach MAIN,$(MAINS), \
+		echo "make static-$(MAIN)" && \
+		$(MAKE) static-$(MAIN) && ) $(NULL)
+
+dynamic-all :
+	@$(foreach MAIN,$(MAINS), \
+		echo "make dynamic-$(MAIN)" && \
+		$(MAKE) dynamic-$(MAIN) && ) $(NULL)
+
+all :
+	@$(MAKE) static-all
+	@$(MAKE) dynamic-all
+	@$(MAKE) $(DOC_DIR)
+
+DATCPY = cp -r -u $(ROOT)/$(DAT_DIR) $(ROOT)/$(BIN_DIR)
 
 test :
-	@printf "== BEGIN TESTING ==\n"
-	@$(TST_CALL)
-	@printf "== END TESTING ==\n"
+	$(BIN_DIR)
+	$(DATCPY)
+	@echo "== BEGIN TESTING =="
+	$(foreach SD,static dynamic, \
+		$(foreach T,$(TEST), \
+		   $(foreach INPUT, \
+					$(if $(wildcard $(ROOT)/$(TST_DIR)/$(T)/*), \
+						$(wildcard $(ROOT)/$(TST_DIR)/$(T)/*), \
+						/dev/null), \
+				echo && \
+				echo "== $(T) < $(notdir $(INPUT)) ==" && \
+				$(ROOT)/$(BIN_DIR)/$(SD)-$(T) < $(INPUT) && \
+				echo &&\
+			))) $(NULL)
+	@echo "== END TESTING =="
 
+RUNEXESTA = $(ROOT)/$(BINDIR)/static-$(RUN)
+RUNEXEDYN = $(ROOT)/$(BINDIR)/dynamic-$(RUN)
 
+run :
+	$(DATCPY)
+	@if [[ -x "$(RUNEXEDYN)" ]]; then \
+		echo "$(RUNEXEDYN)" && \
+		$(RUNEXEDYN); \
+	elif [[ -x "$(RUNEXESTA)" ]]; then \
+		echo "$(RUNEXESTA)" && \
+		$(RUNEXESTA); \
+	else \
+		echo "Could not find \"$(RUNEXESTA)\" or \"$(RUNEXEDYN)\""; \
+	fi
 
-CLEAN = $(BLD_DIR) $(DOC_DIR)
-CLEAN_COMMAND = $(foreach DIR,$(CLEAN),rm -rf $(DIR)/* && )$(NULL)
+# Read the docs!
+rtd :
+	$(OPEN) $(ROOT)/$(DOC_DIR)/index.html
+	@#$(OPEN) $(ROOT)/$(DOC_DIR)/refman.pdf
+
+clean-% : %
+	@if [[ $< = $(DAT_DIR) ]] || [[ $< = $(TST_DIR) ]]; then \
+		echo "I doubt you wanted to clean $<. \
+If you *really* want to, do it manually."; \
+	elif [[ $< = $(SRC_DIR) ]]; then \
+		echo "find $(SRC_DIR) -type f -name \"*.o\" -delete" && \
+		find $(SRC_DIR) -type f -name "*.o" -delete; \
+	else \
+		echo "rm -rf $<" && \
+		rm -rf $<; \
+	fi
+
+clean-all :
+	@$(MAKE) clean-$(BIN_DIR)
+	@$(MAKE) clean-$(DOC_DIR)
+	@$(MAKE) clean-$(INC_DIR)
+	@$(MAKE) clean-$(LIB_DIR)
+	@$(MAKE) clean-$(SRC_DIR)
 
 clean :
-	$(CLEAN_COMMAND)
-
-
+	$(MAKE) clean-$(SRC_DIR)
 
 # File/Module name and location
 F = ExampleAPI/example
@@ -252,12 +314,12 @@ HPP = hpp
 # Get license command
 LICENSE = `cat $(ROOT)/LICENSE | sed -e $$'s/\r//' | awk '{print " *  " $$0}'`
 
-open : # Usage example: `make open F=ezhello`
-	vim -O `find $(SRC_DIR) -name $(F).*` `find $(INC_DIR) -name $(F).*`
+open : # Usage example: `make open M=ezhello F=ezhello`
+	vim -O `find $(ROOT)/$(SRC_DIR)/$(M) -name $(F).*`
 
-module : # Usage example: `make module F=ezhello`
-	mkdir -p $(INC_DIR)/$(LIB_SUBDIR)/`dirname $(F)`
-	mkdir -p $(SRC_DIR)/$(LIB_SUBDIR)/`dirname $(F)`
+module : # Usage example: `make module M=game_engine F=window`
+	mkdir -p $(ROOT)/$(INC_DIR)/$(M)/`dirname $(F)`
+	mkdir -p $(ROOT)/$(SRC_DIR)/$(M)/`dirname $(F)`
 	@printf "\
 	/*  $(F).$(H)\n\
 	 *  \n\
@@ -301,14 +363,14 @@ module : # Usage example: `make module F=ezhello`
 	#endif\n\
 	\n\
 	#endif /* `basename $(F) | awk '{print toupper($$0)}'`_`echo $(H) | awk '{print toupper($$0)}'` */\
-	" >> $(INC_DIR)/$(LIB_SUBDIR)/$(F).$(H)
+	" >> $(ROOT)/$(INC_DIR)/$(M)/$(F).$(H)
 	@printf "\
 	/*  $(F).$(C)\n\
 	 *  \n\
 	$(LICENSE)\n\
 	 */\n\
 	\n\
-	#include \"$(LIB_SUBDIR)/$(F).$(H)\"\n\
+	#include \"$(M)/$(F).$(H)\"\n\
 	\n\
 	\n\
 	\n\
@@ -316,26 +378,26 @@ module : # Usage example: `make module F=ezhello`
 	{\n\
 	    return alpha + beta;\n\
 	}\
-	" >> $(SRC_DIR)/$(LIB_SUBDIR)/$(F).$(C)
-	vim -O $(SRC_DIR)/$(LIB_SUBDIR)/$(F).$(C) $(INC_DIR)/$(LIB_SUBDIR)/$(F).$(H)
+	" >> $(ROOT)/$(SRC_DIR)/$(M)/$(F).$(C)
+	vim -O $(ROOT)/$(SRC_DIR)/$(M)/$(F).$(C) $(ROOT)/$(INC_DIR)/$(M)/$(F).$(H)
 
-class : # Usage example: `make class F=EzHello`
-	mkdir -p $(INC_DIR)/$(LIB_SUBDIR)/`dirname $(F)`
-	mkdir -p $(SRC_DIR)/$(LIB_SUBDIR)/`dirname $(F)`
+class : # Usage example: `make class M=GameEngine F=Window`
+	mkdir -p $(ROOT)/$(INC_DIR)/$(M)/`dirname $(F)`
+	mkdir -p $(ROOT)/$(SRC_DIR)/$(M)/`dirname $(F)`
 	@printf "\
-	/*  $(LIB_SUBDIR)/$(F).$(HPP)\n\
+	/*  $(M)/$(F).$(HPP)\n\
 	 *  \n\
 	$(LICENSE)\n\
 	 */\n\
 	\n\
-	#ifndef `echo $(LIB_SUBDIR) | awk '{print toupper($$0)}'`_\
+	#ifndef `echo $(M) | awk '{print toupper($$0)}'`_\
 	`basename $(F) | awk '{print toupper($$0)}'`_\
 	`echo $(HPP) | awk '{print toupper($$0)}'`\n\
-	#define `echo $(LIB_SUBDIR) | awk '{print toupper($$0)}'`_\
+	#define `echo $(M) | awk '{print toupper($$0)}'`_\
 	`basename $(F) | awk '{print toupper($$0)}'`_\
 	`echo $(HPP) | awk '{print toupper($$0)}'`\n\
 	\n\
-	/** @file       $(LIB_SUBDIR)/$(F).$(HPP)\n\
+	/** @file       $(M)/$(F).$(HPP)\n\
 	 *  @brief      Lorem ipsum\n\
 	 *  @details    Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n\
 	 */\n\
@@ -344,7 +406,7 @@ class : # Usage example: `make class F=EzHello`
 	\n\
 	\n\
 	\n\
-	namespace $(LIB_SUBDIR)\n\
+	namespace $(M)\n\
 	{\n\
 	\n\
 	/** @brief      Lorem ipsum\n\
@@ -374,19 +436,19 @@ class : # Usage example: `make class F=EzHello`
 	\n\
 	\n\
 	\n\
-	#endif /* `echo $(LIB_SUBDIR) | awk '{print toupper($$0)}'`_\
+	#endif /* `echo $(M) | awk '{print toupper($$0)}'`_\
 	`basename $(F) | awk '{print toupper($$0)}'`_\
 	`echo $(HPP) | awk '{print toupper($$0)}'` */\
-	" >> $(INC_DIR)/$(LIB_SUBDIR)/$(F).$(HPP)
+	" >> $(ROOT)/$(INC_DIR)/$(M)/$(F).$(HPP)
 	@printf "\
-	/*  $(LIB_SUBDIR)/$(F).$(CPP)\n\
+	/*  $(M)/$(F).$(CPP)\n\
 	 *  \n\
 	$(LICENSE)\n\
 	 */\n\
 	\n\
-	#include \"$(LIB_SUBDIR)/$(F).$(HPP)\"\n\
+	#include \"$(M)/$(F).$(HPP)\"\n\
 	\n\
-	namespace $(LIB_SUBDIR)\n\
+	namespace $(M)\n\
 	{\n\
 	\n\
 	\n\
@@ -415,21 +477,22 @@ class : # Usage example: `make class F=EzHello`
 	\n\
 	\n\
 	\n\
-	}; /* namespace $(LIB_SUBDIR) */\
-	" >> $(SRC_DIR)/$(LIB_SUBDIR)/$(F).$(CPP)
-	vim -O $(SRC_DIR)/$(LIB_SUBDIR)/$(F).$(CPP) $(INC_DIR)/$(LIB_SUBDIR)/$(F).$(HPP)
+	}; /* namespace $(M) */\
+	" >> $(ROOT)/$(SRC_DIR)/$(M)/$(F).$(CPP)
+	vim -O $(ROOT)/$(SRC_DIR)/$(M)/$(F).$(CPP) \
+		$(ROOT)/$(INC_DIR)/$(M)/$(F).$(HPP)
 
 
-main : # Usage example: `make main F=test_hello T=say_hello`
-	mkdir -p $(SRC_DIR)/$(F)
-	if [ $(T) ]; then mkdir -p $(TST_DIR)/$(F); fi
+main : # Usage example: `make main M=test_chat F=main.c T=chat_input_a`
+	mkdir -p $(ROOT)/$(SRC_DIR)/$(M)
+	if [ $(T) ]; then mkdir -p $(ROOT)/$(TST_DIR)/$(M); fi
 	@printf "\
-	/*  $(F).$(C)\n\
+	/*  $(M)/$(F)\n\
 	 *  \n\
 	$(LICENSE)\n\
 	 */\n\
 	\n\
-	/** @file       $(F).$(C)\n\
+	/** @file       $(F)\n\
 	 *  @brief      Lorem ipsum\n\
 	 *  @details    Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n\
 	 */\n\
@@ -439,10 +502,13 @@ main : # Usage example: `make main F=test_hello T=say_hello`
 	\n\
 	\n\
 	\n\
+	/* Did you forget to specify the file extension in 'F=$(F)'?*/\n\
+	\n\
 	int main(int argc, char *argv[])\n\
 	{\n\
-	    printf(\"Hello world! This is \'$(F)\'.\\\n\");\n\
+	    printf(\"Hello world! This is \'$(basename $(F))\'.\\\n\");\n\
 	    return 0;\n\
 	}\
-	" >> $(SRC_DIR)/$(F)/$(F).$(C)
-	vim -O $(SRC_DIR)/$(F)/$(F).$(C) `if [ $(T) ]; then printf $(TST_DIR)/$(F)/$(T); fi`
+	" >> $(ROOT)/$(SRC_DIR)/$(M)/$(F)
+	vim -O $(ROOT)/$(SRC_DIR)/$(M)/$(F) \
+		`if [ $(T) ]; then printf $(ROOT)/$(TST_DIR)/$(M)/$(T); fi`

@@ -1,15 +1,9 @@
-/** @file       main_hellochat.c
- *  @brief      Apps are added just like unit tests. Nonetheless, here is an
- *              example of the former.
- *  @details    The newest trending social media app! Say hello to whoever you
- *              want, right on the command line, powered by the lean-and-mean
- *              EzHello API!
+/*  test_chat/main.c
  *
- *  <!-------------------------------------------------------------------------
  *  Copyright (c) 2018 Kirk Lange <github.com/kirklange>
  *
  *  This software is provided 'as-is', without any express or implied
- *  warranty.  In no event will the authors be held liable for any damages
+ *  warranty. In no event will the authors be held liable for any damages
  *  arising from the use of this software.
  *
  *  Permission is granted to anyone to use this software for any purpose,
@@ -23,10 +17,17 @@
  *  2. Altered source versions must be plainly marked as such, and must not be
  *     misrepresented as being the original software.
  *  3. This notice may not be removed or altered from any source distribution.
- *  -------------------------------------------------------------------------->
  */
 
-#include "EzHello/ezhello.h"
+/** @file       main_chat.c
+ *  @brief      Apps are added just like unit tests. Nonetheless, here is an
+ *              example of the former.
+ *  @details    The newest trending social media app! Say hello and goodbye to
+ *              whoever you want, right on the command line, powered by the
+ *              lean-and-mean EzHello and EzGoodbye APIs!
+ */
+
+#include "ezboth/ezboth.h"
 
 #include <stddef.h>
 #include <stdio.h>
@@ -47,7 +48,8 @@ int main(int argc, char *argv[])
     while (1)
     {
         /* Ask the user for input */
-        fprintf(stdout, "\nWho would you like to say hello to? ", subject);
+        fprintf(stdout, "\nWho would you like to say hello and goodbye to? ",
+                subject);
         fgets(subject, INPUT_SIZE, stdin);
 
         /* Delete the last character of the input (i.e. drop the '\n') */
@@ -57,7 +59,7 @@ int main(int argc, char *argv[])
         if (strcmp(subject, quit_code) == 0)
             break;
         else
-            ezhello_printHelloTo(subject);
+            ezboth_say_to(subject);
     }
 
     fprintf(stdout, "Goodbye!\n");
