@@ -1,6 +1,7 @@
 language: c
 install:
 script:
+  - ls
   - make init
   - make all
   - make test
