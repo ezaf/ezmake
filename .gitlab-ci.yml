@@ -3,7 +3,6 @@ before_script:
 # EzMake defaults to building and running all tests
 test_all:
   script:
-    - ls
     - make init
     - make all
     - make test
