@@ -91,23 +91,25 @@ SUB_DIR = sub
 #########################  Initialize EzMake Framework  #######################
 ###############################################################################
 
-.PHONY : default init
-
-default :
+default : FORCE
 	@echo
 	@echo "Run 'make init' if you haven't already to initialize the EzMake" \
 		"framework, then run 'make help' for further instruction."
 	@echo
 
-init :
-	@rm -rf $(SUB_DIR)/ezmake
-	@rm -rf .git/modules/$(SUB_DIR)/ezmake
-	@git rm -r --cached --ignore-unmatch $(SUB_DIR)/ezmake
-	@git submodule add -f https://github.com/ezaf/ezmake.git $(SUB_DIR)/ezmake
+init : FORCE
+	@rm -rf $(ROOT)/$(SUB_DIR)/ezmake
+	@rm -rf .git/modules/$(ROOT)/$(SUB_DIR)/ezmake
+	@git rm -r --cached --ignore-unmatch $(ROOT)/$(SUB_DIR)/ezmake
+	@git submodule add -f https://github.com/ezaf/ezmake.git $(ROOT)/$(SUB_DIR)/ezmake
 	@rm -f script/ezmake.mk
 	@rm -f script/ezmake_open.sh
 	@mkdir -p script
 	@rmdir --ignore-fail-on-non-empty script
 	git submodule update --init --remote --force
 
--include $(SUB_DIR)/ezmake/script/ezmake.mk
+.SUFFIXES :
+
+FORCE :
+
+-include $(ROOT)/$(SUB_DIR)/ezmake/script/ezmake.mk
