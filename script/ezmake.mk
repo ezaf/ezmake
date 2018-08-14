@@ -269,7 +269,7 @@ all : FORCE
 	@$(foreach MAIN,$(MAINS), \
 		$(MAKE) $(BIN_DIR)/static-$(MAIN).$(EXE_EXT); \
 		$(MAKE) $(BIN_DIR)/dynamic-$(MAIN).$(EXE_EXT);)
-	@$(MAKE) $(DOC_DIR)
+	@#$(MAKE) $(DOC_DIR)
 
 # Read the docs!
 rtd : FORCE
