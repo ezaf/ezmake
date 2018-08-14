@@ -2,5 +2,6 @@
 /docs
 /include
 /lib
-*.swp
+*.d
 *.o
+*.swp

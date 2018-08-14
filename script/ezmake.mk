@@ -44,11 +44,23 @@ SRC_DIR = src
 # Tests
 TST_DIR = test
 
-# Source subdirecties
+# Source subdirecties and files
 SRC_SUBDIRS_MAIN = $(foreach DIR,$(MAINS),$(SRC_DIR)/$(DIR))
 SRC_SUBDIRS_MODULE = $(foreach DIR,$(MODULES),$(SRC_DIR)/$(DIR))
 SRC_SUBDIRS_ALL = $(SRC_SUBDIRS_MAIN) $(SRC_SUBDIRS_MODULE) \
-			  $(foreach DIR,$(SUB_SUBDIRS),$(SUB_DIR)/$(DIR))
+				  $(foreach DIR,$(SUB_SUBDIRS),$(SUB_DIR)/$(DIR))
+SRC_FILES_ALL = $(foreach EXT,$(SRC_EXTS), \
+					$(foreach DIR,$(SRC_SUBDIRS_ALL), \
+						$(wildcard $(DIR)/*.$(EXT))))
+
+# Source subdirecties and files
+INC_SUBDIRS_ALL = $(foreach DIR,$(SRC_SUBDIRS_ALL), \
+					  $(patsubst ./$(SRC_DIR)/%,./$(INC_DIR)%,$(FILE)))
+INC_FILES_ALL = $(foreach EXT,$(INC_EXTS), \
+					$(foreach DIR,$(SRC_SUBDIRS_ALL), \
+						$(wildcard $(DIR)/*.$(EXT))))
+INC_DESTS_ALL = $(foreach FILE,$(INC_FILES_ALL), \
+					$(patsubst ./$(SRC_DIR)/%,./$(INC_DIR)%,$(FILE)))
 
 # Include and library flags
 CF = -fPIC -I$(ROOT)/$(SRC_DIR) \
@@ -68,6 +80,7 @@ endif
 ifneq (, $(shell uname -s | grep -E _NT))
 	CULT = windows
 	DYN_EXT = dll
+	EXE_EXT = exe
 	# Uncomment to remove console window
 	CF += #-Wl,-subsystem,windows
 	# -lmingw32 must come before everything else
@@ -78,6 +91,7 @@ endif
 ifneq (, $(shell uname -s | grep -E Linux))
 	CULT = linux
 	DYN_EXT = so
+	EXE_EXT = out
 	CF +=
 	LF +=
 	OPEN = xdg-open
@@ -85,7 +99,9 @@ endif
 ifneq (, $(shell uname -s | grep -E Darwin))
 	CULT = macos
 	DYN_EXT = dylib
-	# TODO: determine OPEN on MacOS
+	EXE_EXT = app
+	OPEN =
+	# TODO: flesh out build system for MacOS
 endif
 
 # Figure out compile and run targets based on compiler
@@ -117,161 +133,153 @@ endif
 
 MAKE = make --no-print-directory
 NULL = echo >/dev/null
+
 # Credit: https://stackoverflow.com/a/786530/5890633
-REVERSE = $(if $(1),$(call REVERSE,$(wordlist 2,$(words $(1)),$(1)))) \
+reverse = $(if $(1),$(call reverse,$(wordlist 2,$(words $(1)),$(1)))) \
 		  $(firstword $(1))
 
+# File extension substitute (abstraction of patsubst)
+extsubst = $(patsubst %.$(firstword $(1)),%.$(2), \
+		   $(if $(filter-out $(firstword $(1)), $(1)), \
+		       $(call extsubst,$(filter-out $(firstword $(1)),$(1)), \
+			       $(2),$(3)), \
+			   $(3)))
 
+# Get all obj|inc of module parameter
+objofmod = $(call extsubst,$(SRC_EXTS),o,$(foreach EXT,$(SRC_EXTS), \
+			   $(wildcard $(ROOT)/$(SRC_DIR)/$(1)/*.$(EXT))))
+
+incofmod = $(foreach EXT,$(INC_EXTS), \
+			   $(wildcard $(ROOT)/$(SRC_DIR)/$(1)/*.$(EXT)))
+
+# For %.d : %.c?? -> %.o
+deptoobj = @set -e; rm -f $(1); $(CC) $(CF) -M $(2) >$(1).$$$$; \
+		   sed 's,^.*\.o[ :]*,$(basename $(1)).o : ,g' < $(1).$$$$ > $(1); \
+		   printf "\t$(CC) $(CF) -c $(2) $(LF) -o $(basename $(1)).o\n">>$(1);\
+		   rm -f $(1).$$$$
+
+
+
+###############################################################################
+##################################  Targets  ##################################
+###############################################################################
 
 help :
 	@echo "TODO: Write help documentation."
 
+# %.o : deps -> %.d
+-include $(call extsubst,$(SRC_EXTS),d,$(SRC_FILES_ALL))
+
+# %.d : %.c?? -> %.o
+%.d : %.c
+	$(call deptoobj,$@,$<)
+
+%.d : %.cc
+	$(call deptoobj,$@,$<)
+
+%.d : %.cpp
+	$(call deptoobj,$@,$<)
+
+%.d : %.cxx
+	$(call deptoobj,$@,$<)
+
+%.d : %.c++
+	$(call deptoobj,$@,$<)
+
 $(MODULES) $(MAINS) : FORCE
 	@# Nothing needed here.
 
-%.o : %.c
-	$(CC) $(CF) -c $< -o $@
+$(BIN_DIR) : FORCE
+	@$(foreach MOD,$(MODULES), \
+		printf "$(MAKE) $@/$(MOD).$(DYN_EXT)\n"; \
+		$(MAKE) $@/$(MOD).$(DYN_EXT);)
 
-%.o : %.cc
-	$(CC) $(CF) -c $< -o $@
-
-%.o : %.cxx
-	$(CC) $(CF) -c $< -o $@
-
-%.o : %.cpp
-	$(CC) $(CF) -c $< -o $@
-
-%.o : %.c++
-	$(CC) $(CF) -c $< -o $@
-
-$(BIN_DIR) $(DAT_DIR) $(INC_DIR) $(LIB_DIR) $(SRC_DIR) :
+$(DAT_DIR) $(SRC_DIR) :
 	mkdir -p $(ROOT)/$@
 
-$(DOC_DIR) : FORCE
-	mkdir -p $(ROOT)/$(DOC_DIR)
-	rm -rf $(ROOT)/$(DOC_DIR)/*
+$(DOC_DIR) : $(INC_FILES_ALL)
+	@$(MAKE) clean-$@
+	mkdir -p $(ROOT)/$@
 	@$(MAKE) $(SUB_DIR)
 	doxygen >/dev/null
+
+$(INC_DIR) : FORCE
+	@$(foreach DIR,$(MODULES), \
+		printf "$(MAKE) $@/$(DIR)\n"; \
+		$(MAKE) $@/$(DIR);)
+
+$(LIB_DIR) : FORCE
+	@$(foreach MOD,$(MODULES), \
+		printf "$(MAKE) $@/lib$(MOD).a\n"; \
+		$(MAKE) $@/lib$(MOD).a;)
 
 $(SUB_DIR) : FORCE
 	mkdir -p $(ROOT)/$@
 	git submodule update --init --remote --force
 
-$(BIN_DIR)/%.$(DYN_EXT) : % $(BIN_DIR)
-	@if [ $$($(MAKE) $(SRC_DIR)/$<) = *"is up to date."* ] && \
-		[ -f $(ROOT)/$@ ]; then \
-		echo "make[$(MAKELEVEL)]: '$(ROOT)/$@' is up to date."; \
-	else \
-		echo "$(CC) $(CF) -shared \
-$$(find $(ROOT)/$(SRC_DIR)/$< -name "*.o") -L$(ROOT)/$(LIB_DIR) \
-$$(find $(ROOT)/$(BIN_DIR) -name "*.$(DYN_EXT)") \
--o $(ROOT)/$@"; \
-		$(CC) $(CF) -shared \
-			$$(find $(ROOT)/$(SRC_DIR)/$< -name "*.o") -L$(ROOT)/$(LIB_DIR) \
-			$$(find $(ROOT)/$(BIN_DIR) -name "*.$(DYN_EXT)") \
-			-o $(ROOT)/$@; \
-	fi
+.SECONDEXPANSION :
+$(BIN_DIR)/%.$(DYN_EXT) : $$(call objofmod,%)
+	@$(if $(filter $*,$(MODULES)), \
+		mkdir -p $(ROOT)/$(BIN_DIR); \
+			printf "$(CC) $(CF) -shared $^ $(LF) -o $(ROOT)/$@\n"; \
+			$(CC) $(CF) -shared $^ $(LF) -o $(ROOT)/$@, \
+		printf "'$*' is not in MODULES\n")
 
-$(INC_DIR)/% : % $(INC_DIR)
-	@mkdir -p $@
-	@$(foreach EXT,$(INC_EXTS), \
-		$(foreach FILE,$(wildcard $(ROOT)/$(SRC_DIR)/$</*.$(EXT)), \
-			if [ $$(diff -N $(FILE) \
-					$(patsubst ./$(SRC_DIR)%,./$(INC_DIR)%,$(FILE))) ]; then \
-				echo "cp $(FILE) \
-$(patsubst ./$(SRC_DIR)%,./$(INC_DIR)%,$(FILE))"; \
-				cp $(FILE) $(patsubst ./$(SRC_DIR)%,./$(INC_DIR)%,$(FILE)); \
-			fi))
+.SECONDEXPANSION :
+$(BIN_DIR)/static-%.$(EXE_EXT) : $$(call objofmod,%) \
+		$(foreach MOD,$(call reverse,$(MODULES)), \
+			$(ROOT)/$(LIB_DIR)/lib$(MOD).a)
+	@$(if $(filter $*,$(MAINS)), \
+		mkdir -p $(ROOT)/$(BIN_DIR); \
+			printf "$(CC) $(CF) $^ $(LF) -o $(ROOT)/$@\n"; \
+			$(CC) $(CF) $^ $(LF) -o $(ROOT)/$@, \
+		printf "'$*' is not in MAINS\n")
 
-$(LIB_DIR)/lib%.a : % $(LIB_DIR)
-	@if [ $$($(MAKE) $(SRC_DIR)/$<) = *"is up to date."* ] && \
-		[ -f $(ROOT)/$@ ]; then \
-		echo "make[$(MAKELEVEL)]: '$(ROOT)/$@' is up to date."; \
-	else \
-		echo "ar rcs $@ $$(find $(ROOT)/$(SRC_DIR)/$< -name "*.o")"; \
-		ar rcs $@ $$(find $(ROOT)/$(SRC_DIR)/$< -name "*.o"); \
-	fi
+.SECONDEXPANSION :
+$(BIN_DIR)/dynamic-%.$(EXE_EXT) : $$(call objofmod,%) \
+		$(foreach MOD,$(call reverse,$(MODULES)), \
+			$(ROOT)/$(BIN_DIR)/$(MOD).$(DYN_EXT))
+	@$(if $(filter $*,$(MAINS)), \
+		mkdir -p $(ROOT)/$(BIN_DIR); \
+			printf "$(CC) $(CF) $^ $(LF) -o $(ROOT)/$@\n"; \
+			$(CC) $(CF) $^ $(LF) -o $(ROOT)/$@, \
+		printf "'$*' is not in MAINS\n")
 
-$(SRC_SUBDIRS_ALL) : FORCE
-	@$(foreach EXT,$(SRC_EXTS), \
-		$(foreach FILE,$(wildcard $@/*.$(EXT)), \
-			$(MAKE) $(patsubst %.$(EXT),%.o,$(FILE))))
+.SECONDEXPANSION :
+$(INC_DIR)/% : $$(call incofmod,%)
+	@mkdir -p $(ROOT)/$(INC_DIR)
+	@mkdir -p $(ROOT)/$(basename $@)
+	$(foreach FILE,$?, \
+		cp $(ROOT)/$(FILE) \
+			$(ROOT)/$(patsubst $(SRC_DIR)/%,$(INC_DIR)/%,$(FILE));)
 
-mode-main = \
-	uptodate=0; modules=0; \
-	output=$$($(MAKE) $(BIN_DIR)); \
-	echo "$$output"; \
-	if [ $$output = *"is up to date." ]; then \
-		let "uptodate+=1"; fi; \
-	output=$$($(MAKE) $(SRC_DIR)/$(2)); \
-	echo "$$output"; \
-	if [ $$output = *"is up to date." ]; then \
-		let "uptodate+=1"; fi; \
-	for MOD in $(MODULES); do \
-		let "modules+=1"; \
-		output=$$($(MAKE) $(1)-$$MOD); \
-		echo "$$output"; \
-		if [ $$output = *"is up to date." ]; then \
-			let "uptodate+=1"; fi; \
-	done; \
-	let "uptodate-=2"; \
-	if [ uptodate -eq modules ] && \
-		[ -x $(ROOT)/$(BIN_DIR)/$(1)-$(2) ]; then \
-		echo "make[$(MAKELEVEL)]: '$(ROOT)/$(BIN_DIR)/$(1)-$(2)' \
-is up to date."; \
-	else \
-		if [ static == $(1) ]; then \
-			dir=$(LIB_DIR); \
-			pre=lib; \
-			ext=a; fi; \
-		if [ dynamic == $(1) ]; then \
-			dir=$(BIN_DIR); \
-			pre=; \
-			ext=$(DYN_EXT); fi; \
-		echo "$(CC) $(CF) \
-$$(find $(ROOT)/$(SRC_DIR)/$(2) -type f -name "*.o") \
-$(foreach MOD,$(call REVERSE,$(MODULES)), \
-$(ROOT)/$$dir/$$pre\$(MOD).$$ext) \
--o $(ROOT)/$(BIN_DIR)/$(1)-$<"; \
-		$(CC) $(CF) $$(find $(ROOT)/$(SRC_DIR)/$(2) -type f -name "*.o") \
-			$(foreach MOD,$(call REVERSE,$(MODULES)), \
-				$(ROOT)/$$dir/$$pre\$(MOD).$$ext) \
-			-o $(ROOT)/$(BIN_DIR)/$(1)-$<; \
-	fi
-
-# Where % is one of MODULES or MAINS
-static-% : %
-	@$(if $(findstring $<,$(MODULES)), \
-		$(MAKE) $(LIB_DIR)/lib$<.a && \
-		$(MAKE) $(INC_DIR)/$<)
-	@$(if $(findstring $<,$(MAINS)),$(call mode-main,static,$<))
-
-# Where % is one of MODULES or MAINS
-dynamic-% : %
-	@$(if $(findstring $<,$(MODULES)), \
-		$(MAKE) $(BIN_DIR)/$<.$(DYN_EXT) && \
-		$(MAKE) $(INC_DIR)/$<)
-	@$(if $(findstring $<,$(MAINS)),$(call mode-main,dynamic,$<))
-
-static-all : FORCE
-	@$(foreach MAIN,$(MAINS), \
-		echo "make static-$(MAIN)" && \
-		$(MAKE) static-$(MAIN) && ) $(NULL)
-
-dynamic-all : FORCE
-	@$(foreach MAIN,$(MAINS), \
-		echo "make dynamic-$(MAIN)" && \
-		$(MAKE) dynamic-$(MAIN) && ) $(NULL)
+.SECONDEXPANSION :
+$(LIB_DIR)/lib%.a : $$(call objofmod,%)
+	@$(if $(filter $*,$(MODULES)), \
+		mkdir -p $(ROOT)/$(LIB_DIR); \
+			printf "ar rcs $(ROOT)/$@ $?\n"; \
+			ar rcs $(ROOT)/$@ $?;, \
+		printf "'$*' is not in MODULES\n")
 
 all : FORCE
-	@$(MAKE) static-all
-	@$(MAKE) dynamic-all
+	@$(foreach MOD,$(MODULES), \
+		$(MAKE) $(LIB_DIR)/lib$(MOD).a; \
+		$(MAKE) $(INC_DIR)/$(MOD); \
+		$(MAKE) $(BIN_DIR)/$(MOD).$(DYN_EXT);)
+	@$(foreach MAIN,$(MAINS), \
+		$(MAKE) $(BIN_DIR)/static-$(MAIN).$(EXE_EXT); \
+		$(MAKE) $(BIN_DIR)/dynamic-$(MAIN).$(EXE_EXT);)
 	@$(MAKE) $(DOC_DIR)
+
+# Read the docs!
+rtd : FORCE
+	$(OPEN) $(ROOT)/$(DOC_DIR)/index.html
+	@#$(OPEN) $(ROOT)/$(DOC_DIR)/refman.pdf
 
 DATCPY = cp -r -u $(ROOT)/$(DAT_DIR) $(ROOT)/$(BIN_DIR)
 
 test : FORCE
-	@$(MAKE) $(BIN_DIR)
+	@$(MAKE) all
 	$(DATCPY)
 	@echo "== BEGIN TESTING =="
 	@$(foreach SD,static dynamic, \
@@ -282,52 +290,46 @@ test : FORCE
 						/dev/null), \
 				echo && \
 				echo "== $(SD)-$(T) < $(notdir $(INPUT)) ==" && \
-				$(ROOT)/$(BIN_DIR)/$(SD)-$(T) < $(INPUT) && \
+				$(ROOT)/$(BIN_DIR)/$(SD)-$(T).$(EXE_EXT) < $(INPUT) && \
 			))) echo
 	@echo "== END TESTING =="
 
-RUNEXESTA = $(ROOT)/$(BIN_DIR)/static-$(RUN)
-RUNEXEDYN = $(ROOT)/$(BIN_DIR)/dynamic-$(RUN)
+RUNEXESTA = $(ROOT)/$(BIN_DIR)/static-$(RUN).$(EXE_EXT)
+RUNEXEDYN = $(ROOT)/$(BIN_DIR)/dynamic-$(RUN).$(EXE_EXT)
 
 run : FORCE
 	$(DATCPY)
-	@if [ -x "$(RUNEXEDYN)" ]; then \
-		echo "$(RUNEXEDYN)" && \
+	@bash -c "if [[ -x \"$(RUNEXEDYN)\" ]]; then \
+		echo \"$(RUNEXEDYN)\" && \
 		$(RUNEXEDYN); \
-	elif [ -x "$(RUNEXESTA)" ]; then \
-		echo "$(RUNEXESTA)" && \
+	elif [[ -x \"$(RUNEXESTA)\" ]]; then \
+		echo \"$(RUNEXESTA)\" && \
 		$(RUNEXESTA); \
 	else \
-		echo "Could not find \"$(RUNEXESTA)\" or \"$(RUNEXEDYN)\""; \
-	fi
-
-# Read the docs!
-rtd : FORCE
-	$(OPEN) $(ROOT)/$(DOC_DIR)/index.html
-	@#$(OPEN) $(ROOT)/$(DOC_DIR)/refman.pdf
+		echo \"Could not find \\\"$(RUNEXESTA)\\\" or \\\"$(RUNEXEDYN)\\\"\"; \
+	fi"
 
 clean-% : FORCE
-	@if [ $(patsubst clean-%,%,$@) = $(DAT_DIR) ] || \
-		[ $(patsubst clean-%,%,$@) = $(TST_DIR) ]; then \
-		echo "I doubt you want to clean $(ROOT)/$(patsubst clean-%,%,$@). \
-If you *really* want to, do it manually."; \
-	elif [ $(patsubst clean-%,%,$@) = $(SRC_DIR) ]; then \
-		echo "find $(ROOT)/$(SRC_DIR) -type f -name "*.o" -delete"; \
-		find $(ROOT)/$(SRC_DIR) -type f -name "*.o" -delete; \
-	else \
-		echo "rm -rf $(ROOT)/$(patsubst clean-%,%,$@)"; \
-		rm -rf $(ROOT)/$(patsubst clean-%,%,$@); \
-	fi
+	$(if $(findstring $(patsubst clean-%,%,$@),$(DAT_DIR) $(TST_DIR)), \
+		@printf "I doubt you want to clean '$(ROOT)/$(patsubst clean-%,%,$@)'. \
+Do it manually if you *really* want to.\n", \
+		$(if $(findstring $(patsubst clean-%,%,$@),$(SRC_DIR)), \
+			find $(ROOT)/$(SRC_DIR) -type f \
+				\( -name "*.o" -or -name "*.d" \) -delete, \
+			rm -rf $(patsubst clean-%,%,$@)))
 
-clean-all : FORCE
+clean : FORCE
 	@$(MAKE) clean-$(BIN_DIR)
 	@$(MAKE) clean-$(DOC_DIR)
 	@$(MAKE) clean-$(INC_DIR)
 	@$(MAKE) clean-$(LIB_DIR)
 	@$(MAKE) clean-$(SRC_DIR)
 
-clean : FORCE
-	$(MAKE) clean-$(SRC_DIR)
+
+
+###############################################################################
+##############################  File Templates  ###############################
+###############################################################################
 
 # File/Module name and location
 F = ExampleAPI/example
@@ -346,7 +348,8 @@ LICENSE = `cat $(ROOT)/LICENSE | sed -e $$'s/\r//' | awk '{print " *  " $$0}'`
 
 # Usage example: `make open M=ezhello F=ezhello`
 open : FORCE
-	vim -O `find $(ROOT)/$(SRC_DIR)/$(M) -name $(F).*`
+	vim -O $(filter $(foreach EXT,$(INC_EXTS) $(SRC_EXTS),%$(EXT)), \
+		$(wildcard $(ROOT)/$(SRC_DIR)/$(M)/$(F).*))
 
 # Usage example: `make module M=game_engine F=window`
 module : FORCE
@@ -518,7 +521,7 @@ class : FORCE
 # Usage example: `make main M=test_chat F=main.c T=chat_input_a`
 main : FORCE
 	mkdir -p $(ROOT)/$(SRC_DIR)/$(M)
-	if [ $(T) ]; then mkdir -p $(ROOT)/$(TST_DIR)/$(M); fi
+	@bash -c "if [[ $(T) ]]; then mkdir -p $(ROOT)/$(TST_DIR)/$(M); fi"
 	@printf "\
 	/*  $(M)/$(F)\n\
 	 *  \n\
@@ -537,14 +540,15 @@ main : FORCE
 	\n\
 	/* Did you forget to specify the file extension in 'F=$(F)'?*/\n\
 	\n\
-	int main(int argc, char *argv[])\n\
+	int main(int argc, char *argv[[]])\n\
 	{\n\
 	    printf(\"Hello world! This is \'$(basename $(F))\'.\\\n\");\n\
 	    return 0;\n\
 	}\
 	" >> $(ROOT)/$(SRC_DIR)/$(M)/$(F)
 	vim -O $(ROOT)/$(SRC_DIR)/$(M)/$(F) \
-		`if [ $(T) ]; then printf $(ROOT)/$(TST_DIR)/$(M)/$(T); fi`
+		`if [[ $(T) ]]; then printf $(ROOT)/$(TST_DIR)/$(M)/$(T); fi`
 
+.SUFFIXES :
 
 FORCE :

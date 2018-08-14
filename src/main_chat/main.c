@@ -48,8 +48,7 @@ int main(int argc, char *argv[])
     while (1)
     {
         /* Ask the user for input */
-        fprintf(stdout, "\nWho would you like to say hello and goodbye to? ",
-                subject);
+        fprintf(stdout, "\nWho would you like to say hello and goodbye to? ");
         fgets(subject, INPUT_SIZE, stdin);
 
         /* Delete the last character of the input (i.e. drop the '\n') */
