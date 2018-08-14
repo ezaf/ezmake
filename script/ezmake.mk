@@ -66,7 +66,7 @@ INC_DESTS_ALL = $(foreach FILE,$(INC_FILES_ALL), \
 CF = -fPIC -I$(ROOT)/$(SRC_DIR) \
 	 $(foreach DIR,$(SUB_SUBDIRS),-I$(ROOT)/$(SUB_DIR)/$(DIR)) \
 	 $(foreach DIR,$(PREFIXES),-I$(DIR)/include)
-LF += $(foreach DIR,$(PREFIXES),-L$(DIR)/lib)
+LF += $(foreach DIR,$(PREFIXES) $(ROOT),-L$(DIR)/lib)
 
 # Package flags
 ifneq ($(PKGS),)
@@ -222,7 +222,10 @@ $(BIN_DIR)/%.$(DYN_EXT) : $$(call objofmod,%)
 	@$(if $(filter $*,$(MODULES)), \
 		mkdir -p $(ROOT)/$(BIN_DIR); \
 			printf "$(CC) $(CF) -shared $^ $(LF) -o $(ROOT)/$@\n"; \
-			$(CC) $(CF) -shared $^ $(LF) -o $(ROOT)/$@, \
+			$(CC) $(CF) -shared $^ $(LF) \
+				$(filter-out $(ROOT)/$@, \
+					$(wildcard $(ROOT)/$(BIN_DIR)/*.$(DYN_EXT))) \
+				-o $(ROOT)/$@, \
 		printf "'$*' is not in MODULES\n")
 
 .SECONDEXPANSION :
