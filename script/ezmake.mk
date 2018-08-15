@@ -198,13 +198,14 @@ $(BIN_DIR) : FORCE
 $(DAT_DIR) $(SRC_DIR) :
 	mkdir -p $(ROOT)/$@
 
-$(DOC_DIR) : $(INC_FILES_ALL)
+$(DOC_DIR) : $(INC_DIR)
 	@$(MAKE) clean-$@
 	mkdir -p $(ROOT)/$@
 	@$(MAKE) $(SUB_DIR)
 	doxygen >/dev/null
 
-$(INC_DIR) : FORCE
+$(INC_DIR) : $(INC_FILES_ALL)
+	mkdir -p $(ROOT)/$@
 	@$(foreach DIR,$(MODULES), \
 		printf "$(MAKE) $@/$(DIR)\n"; \
 		$(MAKE) $@/$(DIR);)
