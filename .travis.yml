@@ -15,9 +15,6 @@ addons:
             - libxinerama-dev
             - libxcursor-dev
             - libxi-dev
-            - dos2unix
-            - libosmesa6-dev
-            - libegl1-mesa-dev
 script:
     - git clone https://github.com/glfw/glfw.git
     - cd glfw
@@ -37,11 +34,6 @@ script:
     - make
     - sudo make install
     - cd ../../
-    - git clone https://github.com/nigels-com/glew.git
-    - cd glew
-    - make
-    - sudo make install
-    - cd ../
     - make init
     - make all
     - make test

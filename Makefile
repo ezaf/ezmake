@@ -27,7 +27,7 @@
 # Directories within ./src of your library code.
 # Each subdirectory gets built into its own shared library, assuming that MODE
 # is set to dynamic.
-MODULES = ezhello ezgoodbye ezboth
+MODULES = ezhello ezgoodbye ezboth glad
 
 # Directories within ./src of the apps and tests that you want to build.
 MAINS = test_hello main_chat test_opengl
@@ -43,7 +43,7 @@ RUN = test_opengl
 # `-l$(PKG)` will be added to the build instead, for each PKG in PKGS and for
 # each PREFIX in PREFIXES. These are CASE SENSITIVE! Double check the correct
 # case for your library. Commented out are examples.
-PKGS = glew glfw3 #gtk+-3.0 sdl2 SDL2_image
+PKGS = glfw3 #gtk+-3.0 sdl2 SDL2_image
 
 # Needed submodule include and/or source directories within ./sub
 SUB_SUBDIRS =
@@ -68,7 +68,7 @@ CC = gcc
 # EzMake is that we assume all tests/mains use the same compiler flags. If this
 # becomes a big enough issue, this will be amended in a future version.
 CF = -std=c11 -O3 -w
-LF =
+LF = -lglfw3 # pkg-config not finding glfw3 on travis-ci
 
 # Include file extensions you want moved to ./include
 INC_EXTS = h hpp
@@ -78,7 +78,7 @@ SRC_EXTS = c cpp
 
 # Location(s) where EzMake should look for `include` and `lib` subdirectories
 # No biggie if the directory doesn't exist.
-PREFIXES = /usr /mingw64 /mingw32 $$HOME
+PREFIXES = /usr /usr/local /mingw64 /mingw32 $$HOME
 
 # WARNING: Changing these may cause a lot of headache!
 # Project root directory and submodule directory

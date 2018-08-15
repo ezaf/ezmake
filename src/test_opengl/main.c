@@ -28,7 +28,7 @@
 // https://github.com/glfw/glfw/blob/master/examples/simple.c
 // Only changed glad -> glew
 
-#include <GL/glew.h>
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 // Relevant segments manually copied from
@@ -144,7 +144,7 @@ static inline void mat4x4_ortho(mat4x4 M, float l, float r, float b, float t, fl
 
 	M[2][2] = -2.f/(f-n);
 	M[2][0] = M[2][1] = M[2][3] = 0.f;
-	
+
 	M[3][0] = -(r+l)/(r-l);
 	M[3][1] = -(t+b)/(t-b);
 	M[3][2] = -(f+n)/(f-n);
@@ -217,12 +217,7 @@ int main(void)
     glfwSetKeyCallback(window, key_callback);
 
     glfwMakeContextCurrent(window);
-    
-    if (glewInit() != GLEW_OK)
-    {
-        printf("GLEW failed to initialize!\n");
-    }
-    
+    gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
     glfwSwapInterval(1);
 
     // NOTE: OpenGL error checks have been omitted for brevity
