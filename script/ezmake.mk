@@ -71,7 +71,8 @@ LF += $(foreach DIR,$(PREFIXES) $(ROOT),-L$(DIR)/lib)
 # Package flags
 ifneq ($(PKGS),)
 	CF += `pkg-config --cflags --silence-errors $(PKGS)`
-	LF += `pkg-config --libs --silence-errors $(PKGS)`
+	LF_TEMP := $(LF)
+	LF = `pkg-config --libs --silence-errors $(PKGS)` $(LF_TEMP)
 endif
 
 # Find what OS we're on so we can better configure all the compiler options.
@@ -93,7 +94,7 @@ ifneq (, $(shell uname -s | grep -E Linux))
 	DYN_EXT = so
 	EXE_EXT = out
 	CF +=
-	LF +=
+	LF += -lX11 -lXxf86vm -lXrandr -lpthread -lXi -lm -ldl -lXinerama -lXcursor
 	OPEN = xdg-open
 endif
 ifneq (, $(shell uname -s | grep -E Darwin))
