@@ -63,7 +63,7 @@ INC_DESTS_ALL = $(foreach FILE,$(INC_FILES_ALL), \
 					$(patsubst ./$(SRC_DIR)/%,./$(INC_DIR)%,$(FILE)))
 
 # Include and library flags
-CF = -fPIC -I$(ROOT)/$(SRC_DIR) \
+CF += -fPIC -I$(ROOT)/$(SRC_DIR) \
 	 $(foreach DIR,$(SUB_SUBDIRS),-I$(ROOT)/$(SUB_DIR)/$(DIR)) \
 	 $(foreach DIR,$(PREFIXES),-I$(DIR)/include)
 LF += $(foreach DIR,$(PREFIXES) $(ROOT),-L$(DIR)/lib)
@@ -301,6 +301,7 @@ RUNEXESTA = $(ROOT)/$(BIN_DIR)/static-$(RUN).$(EXE_EXT)
 RUNEXEDYN = $(ROOT)/$(BIN_DIR)/dynamic-$(RUN).$(EXE_EXT)
 
 run : FORCE
+	@$(MAKE) all
 	$(DATCPY)
 	@bash -c "if [[ -x \"$(RUNEXEDYN)\" ]]; then \
 		echo \"$(RUNEXEDYN)\" && \
@@ -318,7 +319,7 @@ clean-% : FORCE
 Do it manually if you *really* want to.\n", \
 		$(if $(findstring $(patsubst clean-%,%,$@),$(SRC_DIR)), \
 			find $(ROOT)/$(SRC_DIR) -type f \
-				\( -name "*.o" -or -name "*.d" \) -delete, \
+				\( -name "*.o" -or -name "*.d" -or -name "*.d.*" \) -delete, \
 			rm -rf $(patsubst clean-%,%,$@)))
 
 clean : FORCE
@@ -352,7 +353,10 @@ LICENSE = `cat $(ROOT)/LICENSE | sed -e $$'s/\r//' | awk '{print " *  " $$0}'`
 # Usage example: `make open M=ezhello F=ezhello`
 open : FORCE
 	vim -O $(filter $(foreach EXT,$(INC_EXTS) $(SRC_EXTS),%$(EXT)), \
-		$(wildcard $(ROOT)/$(SRC_DIR)/$(M)/$(F).*))
+			$(if $(M), \
+				$(wildcard $(ROOT)/$(SRC_DIR)/$(M)/$(F).*), \
+				$(foreach DIR,$(MODULES) $(MAINS), \
+					$(wildcard $(ROOT)/$(SRC_DIR)/$(DIR)/$(F).*))))
 
 # Usage example: `make module M=game_engine F=window`
 module : FORCE
