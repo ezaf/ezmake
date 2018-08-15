@@ -279,7 +279,8 @@ rtd : FORCE
 	$(OPEN) $(ROOT)/$(DOC_DIR)/index.html
 	@#$(OPEN) $(ROOT)/$(DOC_DIR)/refman.pdf
 
-DATCPY = cp -r -u $(ROOT)/$(DAT_DIR) $(ROOT)/$(BIN_DIR)
+DATCPY = $(if $(wildcard $(ROOT)/$(DAT_DIR)), \
+		 cp -r -u $(ROOT)/$(DAT_DIR) $(ROOT)/$(BIN_DIR))
 
 test : FORCE
 	@$(MAKE) all
