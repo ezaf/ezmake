@@ -1,9 +1,28 @@
+image: alpine
+
 before_script:
+- apk update
+- apk add doxygen
+- apk add make
+- apk add git
+- apk add gcc
+- apk add libc-dev
 
 # TODO: figure out glfw on GitLab's docker
-# test_all:
-#  script:
-#    - make init
-#    - make all
-#    - make test
-#    - make clean
+test:
+  script:
+  - make init
+  - make all MODULES=ezhello\ ezgoodbye\ ezboth MAINS=test_hello\ main_chat PKGS= LF=
+  - make test MODULES=ezhello\ ezgoodbye\ ezboth MAINS=test_hello\ main_chat TEST=test_hello\ main_chat PKGS= LF=
+  - make clean
+
+pages:
+  script:
+  - make init
+  - make docs MODULES=ezhello\ ezgoodbye\ ezboth MAINS=test_hello\ main_chat PKGS= LF=
+  - mv docs/ public/
+  artifacts:
+    paths:
+    - public
+  only:
+  - master
