@@ -84,9 +84,9 @@ ifneq (, $(shell uname -s | grep -E _NT))
 	EXE_EXT = exe
 	# Uncomment to remove console window
 	CF += #-Wl,-subsystem,windows
-	# -lmingw32 must come before everything else
+	# -lmingw32 and -lOpenGL32 must come before everything else
 	LF_TEMP := $(LF)
-	LF = -lmingw32 $(LF_TEMP)
+	LF = -lmingw32 $(if $(filter glew glfw3,$(PKGS)), -lOpenGL32) $(LF_TEMP)
 	OPEN = cmd //c start "${@//&/^&}"
 endif
 ifneq (, $(shell uname -s | grep -E Linux))
