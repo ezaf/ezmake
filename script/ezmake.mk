@@ -61,6 +61,7 @@ INC_FILES_ALL = $(foreach EXT,$(INC_EXTS), \
 						$(wildcard $(DIR)/*.$(EXT))))
 INC_DESTS_ALL = $(foreach FILE,$(INC_FILES_ALL), \
 					$(patsubst ./$(SRC_DIR)/%,./$(INC_DIR)%,$(FILE)))
+DOC_FILES_ALL = $(wildcard $(ROOT)/$(SRC_DIR)/$(DOC_DIR)/*)
 
 # Include and library flags
 CF += -fPIC -I$(ROOT)/$(SRC_DIR) \
@@ -200,7 +201,7 @@ $(BIN_DIR) : FORCE
 $(DAT_DIR) $(SRC_DIR) :
 	mkdir -p $(ROOT)/$@
 
-$(DOC_DIR) : $(INC_DIR)
+$(DOC_DIR) : $(INC_DIR) README.md $(DOC_FILES_ALL)
 	@$(MAKE) clean-$@
 	mkdir -p $(ROOT)/$@
 	@$(MAKE) $(SUB_DIR)
@@ -276,18 +277,17 @@ all : FORCE
 	@$(foreach MAIN,$(MAINS), \
 		$(MAKE) $(BIN_DIR)/static-$(MAIN).$(EXE_EXT); \
 		$(MAKE) $(BIN_DIR)/dynamic-$(MAIN).$(EXE_EXT);)
-	@#$(MAKE) $(DOC_DIR)
+	@$(MAKE) $(DOC_DIR)
 
 # Read the docs!
-rtd : FORCE
+rtd : $(DOC_DIR)
 	$(OPEN) $(ROOT)/$(DOC_DIR)/index.html
 	@#$(OPEN) $(ROOT)/$(DOC_DIR)/refman.pdf
 
 DATCPY = $(if $(wildcard $(ROOT)/$(DAT_DIR)), \
 		 cp -r -u $(ROOT)/$(DAT_DIR) $(ROOT)/$(BIN_DIR))
 
-test : FORCE
-	@$(MAKE) all
+test : all
 	$(DATCPY)
 	@echo "== BEGIN TESTING =="
 	@$(foreach SD,static dynamic, \
@@ -305,8 +305,7 @@ test : FORCE
 RUNEXESTA = $(ROOT)/$(BIN_DIR)/static-$(RUN).$(EXE_EXT)
 RUNEXEDYN = $(ROOT)/$(BIN_DIR)/dynamic-$(RUN).$(EXE_EXT)
 
-run : FORCE
-	@$(MAKE) all
+run : all
 	$(DATCPY)
 	@bash -c "if [[ -x \"$(RUNEXEDYN)\" ]]; then \
 		echo \"$(RUNEXEDYN)\" && \
