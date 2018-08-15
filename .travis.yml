@@ -11,6 +11,7 @@ addons:
         packages:
             - git
             - cmake
+            - doxygen
             - libxrandr-dev
             - libxinerama-dev
             - libxcursor-dev
