@@ -1,7 +1,48 @@
 language: c
-install:
+compiler: gcc
+branches:
+    only:
+        - ci
+        - master
+sudo: false
+dist: trusty
+addons:
+    apt:
+        packages:
+            - git
+            - cmake
+            - libxrandr-dev
+            - libxinerama-dev
+            - libxcursor-dev
+            - libxi-dev
+            - dos2unix
+            - libosmesa6-dev
+            - libegl1-mesa-dev
 script:
-  - make init
-  - make all
-  - make test
-  - make clean
+    - git clone https://github.com/glfw/glfw.git
+    - cd glfw
+    - if grep -Inr '\s$' src include docs tests examples CMake *.md .gitattributes .gitignore; then echo Trailing whitespace found, aborting.; exit 1; fi
+    - mkdir build
+    - cd build
+    - if test -n "${USE_WAYLAND}";
+          then wget https://mirrors.kernel.org/ubuntu/pool/universe/e/extra-cmake-modules/extra-cmake-modules_5.38.0a-0ubuntu1_amd64.deb;
+          sudo dpkg -i extra-cmake-modules_5.38.0a-0ubuntu1_amd64.deb;
+          git clone git://anongit.freedesktop.org/wayland/wayland-protocols;
+          pushd wayland-protocols;
+          git checkout 1.12 && ./autogen.sh --prefix=/usr && make && sudo make install;
+          popd;
+      fi
+    - cmake -DCMAKE_VERBOSE_MAKEFILE=ON -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS} -DGLFW_USE_WAYLAND=${USE_WAYLAND} ..
+    - cmake --build .
+    - make
+    - sudo make install
+    - cd ../../
+    - git clone https://github.com/nigels-com/glew.git
+    - cd glew
+    - make
+    - sudo make install
+    - cd ../
+    - make init
+    - make all
+    - make test
+    - make clean

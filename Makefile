@@ -30,20 +30,20 @@
 MODULES = ezhello ezgoodbye ezboth
 
 # Directories within ./src of the apps and tests that you want to build.
-MAINS = test_hello main_chat #test_glfw
+MAINS = test_hello main_chat test_opengl
 
 # Name of the application(s) you want to test when you call `make test`.
-TEST = test_hello main_chat #test_glfw
+TEST = test_hello main_chat #test_opengl
 
 # Name of the application (singular!) you want to run when you call `make run`.
-RUN = main_chat
+RUN = test_opengl
 
 # Packages that you want to include in your project.
 # If `pkg-config` cannot find the package, `-I$(PREFIX)/include/$(PKG)` and
 # `-l$(PKG)` will be added to the build instead, for each PKG in PKGS and for
 # each PREFIX in PREFIXES. These are CASE SENSITIVE! Double check the correct
 # case for your library. Commented out are examples.
-PKGS = #glew glfw3 #gtk+-3.0 sdl2 SDL2_image
+PKGS = glew glfw3 #gtk+-3.0 sdl2 SDL2_image
 
 # Needed submodule include and/or source directories within ./sub
 SUB_SUBDIRS =
@@ -68,7 +68,7 @@ CC = gcc
 # EzMake is that we assume all tests/mains use the same compiler flags. If this
 # becomes a big enough issue, this will be amended in a future version.
 CF = -std=c11 -O3 -w
-LF = #-lOpenGL32 -lglew32 #<<< Windows libs
+LF =
 
 # Include file extensions you want moved to ./include
 INC_EXTS = h hpp
