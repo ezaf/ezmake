@@ -94,7 +94,9 @@ ifneq (, $(shell uname -s | grep -E Linux))
 	DYN_EXT = so
 	EXE_EXT = out
 	CF +=
-	LF += -lX11 -lXxf86vm -lXrandr -lpthread -lXi -lm -ldl -lXinerama -lXcursor
+	LF +=  $(if $(filter glew glfw3,$(PKGS)), \
+		   -lX11 -lXxf86vm -lXrandr -lpthread \
+		   -lXi -lm -ldl -lXinerama -lXcursor)
 	OPEN = xdg-open
 endif
 ifneq (, $(shell uname -s | grep -E Darwin))
