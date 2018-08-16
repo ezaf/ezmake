@@ -201,7 +201,7 @@ $(BIN_DIR) : FORCE
 $(DAT_DIR) $(SRC_DIR) :
 	mkdir -p $(ROOT)/$@
 
-$(DOC_DIR) : $(INC_DIR) README.md $(DOC_FILES_ALL)
+$(DOC_DIR) : $(INC_DIR) README.md Doxyfile $(DOC_FILES_ALL)
 	@$(MAKE) clean-$@
 	mkdir -p $(ROOT)/$@
 	@$(MAKE) $(SUB_DIR)

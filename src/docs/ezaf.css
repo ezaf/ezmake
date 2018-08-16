@@ -41,9 +41,14 @@ hr {
 	border-top: 1px solid #888;
 }
 
-h2.groupheader {
+
+h2.groupheader, h2 {
 	border-bottom: 1px solid #888;
 	color: #acf;
+}
+
+.contents img {
+    width: 100%;
 }
 
 address {
