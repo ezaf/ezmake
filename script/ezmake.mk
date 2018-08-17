@@ -257,7 +257,8 @@ $(BIN_DIR)/%.$(DYN_EXT) : $$(call objofmod,%)
 
 .SECONDEXPANSION :
 $(BIN_DIR)/static-%.$(EXE_EXT) : $$(call objofmod,%) \
-		$(foreach MOD,$(call reverse,$(MODULES)) $(SUBMODULE), \
+		$(foreach MOD,$(call reverse,$(MODULES)) \
+				$(if $(strip $(SUB_FILES)),$(SUBMODULE)), \
 			$(ROOT)/$(LIB_DIR)/lib$(MOD).a)
 	@$(if $(filter $*,$(MAINS)), \
 		mkdir -p $(ROOT)/$(BIN_DIR); \
@@ -267,7 +268,8 @@ $(BIN_DIR)/static-%.$(EXE_EXT) : $$(call objofmod,%) \
 
 .SECONDEXPANSION :
 $(BIN_DIR)/dynamic-%.$(EXE_EXT) : $$(call objofmod,%) \
-		$(foreach MOD,$(call reverse,$(MODULES)) $(SUBMODULE), \
+		$(foreach MOD,$(call reverse,$(MODULES)) \
+				$(if $(strip $(SUB_FILES)),$(SUBMODULE)), \
 			$(ROOT)/$(BIN_DIR)/$(MOD).$(DYN_EXT))
 	@$(if $(filter $*,$(MAINS)), \
 		mkdir -p $(ROOT)/$(BIN_DIR); \
@@ -292,8 +294,9 @@ $(LIB_DIR)/lib%.a : $$(call objofmod,%)
 		printf "'$*' is not in MODULES\n")
 
 all : FORCE
-	@$(MAKE) $(LIB_DIR)/lib$(SUBMODULE).a
-	@$(MAKE) $(BIN_DIR)/$(SUBMODULE).$(DYN_EXT)
+	@$(if $(strip $(SUB_FILES)), \
+		$(MAKE) $(LIB_DIR)/lib$(SUBMODULE).a; \
+		$(MAKE) $(BIN_DIR)/$(SUBMODULE).$(DYN_EXT))
 	@$(foreach MOD,$(MODULES), \
 		$(MAKE) $(LIB_DIR)/lib$(MOD).a; \
 		$(MAKE) $(INC_DIR)/$(MOD); \
