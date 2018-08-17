@@ -25,9 +25,12 @@
 ###############################################################################
 
 # Directories within ./src of your library code.
-# Each subdirectory gets built into its own shared library, assuming that MODE
-# is set to dynamic.
+# Each subdirectory gets built into its own shared library/object.
 MODULES = ezhello ezgoodbye ezboth glad
+
+# Similar to MODULES, except PLUGINS are not part of the core application and
+# must be dynamically loaded via a shared object (.dll, .so, etc)
+PLUGINS = #AnimatedSprite
 
 # Directories within ./src of the apps and tests that you want to build.
 MAINS = test_hello main_chat test_opengl
@@ -37,6 +40,10 @@ TEST = test_hello main_chat #test_opengl
 
 # Name of the application (singular!) you want to run when you call `make run`.
 RUN = test_opengl
+
+# When building all, choose whether to build dynamic and/or static mains
+# EZSDL: For some reason statically built mains have trouble loading plugins
+MODES = dynamic static
 
 # Packages that you want to include in your project.
 # If `pkg-config` cannot find the package, `-I$(PREFIX)/include/$(PKG)` and
