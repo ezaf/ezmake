@@ -44,14 +44,33 @@ SRC_DIR = src
 # Tests
 TST_DIR = test
 
+# Name of submodule library
+SUBMODULE = submodule
+
 # Source subdirecties and files
 SRC_SUBDIRS_MAIN = $(foreach DIR,$(MAINS),$(SRC_DIR)/$(DIR))
 SRC_SUBDIRS_MODULE = $(foreach DIR,$(MODULES),$(SRC_DIR)/$(DIR))
 SRC_SUBDIRS_ALL = $(SRC_SUBDIRS_MAIN) $(SRC_SUBDIRS_MODULE) \
 				  $(foreach DIR,$(SUB_SUBDIRS),$(SUB_DIR)/$(DIR))
+
+# Source subdirecties and files
+SRC_SUBDIRS_MAIN = $(foreach DIR,$(MAINS),$(SRC_DIR)/$(DIR))
+SRC_SUBDIRS_MODULE = $(foreach DIR,$(MODULES),$(SRC_DIR)/$(DIR))
+SRC_SUBDIRS_PLUGIN = $(foreach DIR,$(PLUGINS),$(SRC_DIR)/$(DIR))
+SRC_SUBDIRS_ALL = $(SRC_SUBDIRS_MAIN) $(SRC_SUBDIRS_MODULE) \
+				  $(SRC_SUBDIRS_PLUGIN) \
+				  $(foreach DIR,$(SUB_SUBDIRS),$(SUB_DIR)/$(DIR))
+
+SUB_FILES_TEMP := $(SUB_FILES)
+SUB_FILES = $(foreach FILE,$(SUB_FILES_TEMP),$(ROOT)/$(SUB_DIR)/$(FILE))
+SUB_FILES += $(foreach EXT,$(SRC_EXTS), \
+			     $(foreach DIR,$(SUB_SUBDIRS), \
+					 $(wildcard $(ROOT)/$(SUB_DIR)/$(DIR)/*.$(EXT))))
+
 SRC_FILES_ALL = $(foreach EXT,$(SRC_EXTS), \
 					$(foreach DIR,$(SRC_SUBDIRS_ALL), \
-						$(wildcard $(DIR)/*.$(EXT))))
+						$(wildcard $(DIR)/*.$(EXT)))) \
+				$(SUB_FILES)
 
 # Source subdirecties and files
 INC_SUBDIRS_ALL = $(foreach DIR,$(SRC_SUBDIRS_ALL), \
@@ -150,8 +169,11 @@ extsubst = $(patsubst %.$(firstword $(1)),%.$(2), \
 			   $(3)))
 
 # Get all obj|inc of module parameter
-objofmod = $(call extsubst,$(SRC_EXTS),o,$(foreach EXT,$(SRC_EXTS), \
-			   $(wildcard $(ROOT)/$(SRC_DIR)/$(1)/*.$(EXT))))
+objofmod = $(call extsubst,$(SRC_EXTS),o, \
+		       $(if $(filter $(SUBMODULE),$(1)), \
+				   $(SUB_FILES), \
+				   $(foreach EXT,$(SRC_EXTS), \
+					   $(wildcard $(ROOT)/$(SRC_DIR)/$(1)/*.$(EXT)))))
 
 incofmod = $(foreach EXT,$(INC_EXTS), \
 			   $(wildcard $(ROOT)/$(SRC_DIR)/$(1)/*.$(EXT)))
@@ -194,9 +216,9 @@ $(MODULES) $(MAINS) : FORCE
 	@# Nothing needed here.
 
 $(BIN_DIR) : FORCE
-	@$(foreach MOD,$(MODULES), \
-		printf "$(MAKE) $@/$(MOD).$(DYN_EXT)\n"; \
-		$(MAKE) $@/$(MOD).$(DYN_EXT);)
+	@$(foreach FOO,$(MODULES) $(PLUGINS) $(SUBMODULE), \
+		printf "$(MAKE) $@/$(FOO).$(DYN_EXT)\n"; \
+		$(MAKE) $@/$(FOO).$(DYN_EXT);)
 
 $(DAT_DIR) $(SRC_DIR) :
 	mkdir -p $(ROOT)/$@
@@ -224,7 +246,7 @@ $(SUB_DIR) : FORCE
 
 .SECONDEXPANSION :
 $(BIN_DIR)/%.$(DYN_EXT) : $$(call objofmod,%)
-	@$(if $(filter $*,$(MODULES)), \
+	@$(if $(filter $*,$(MODULES) $(PLUGINS) $(SUBMODULE)), \
 		mkdir -p $(ROOT)/$(BIN_DIR); \
 			printf "$(CC) $(CF) -shared $^ $(LF) -o $(ROOT)/$@\n"; \
 			$(CC) $(CF) -shared $^ $(LF) \
@@ -235,7 +257,7 @@ $(BIN_DIR)/%.$(DYN_EXT) : $$(call objofmod,%)
 
 .SECONDEXPANSION :
 $(BIN_DIR)/static-%.$(EXE_EXT) : $$(call objofmod,%) \
-		$(foreach MOD,$(call reverse,$(MODULES)), \
+		$(foreach MOD,$(call reverse,$(MODULES)) $(SUBMODULE), \
 			$(ROOT)/$(LIB_DIR)/lib$(MOD).a)
 	@$(if $(filter $*,$(MAINS)), \
 		mkdir -p $(ROOT)/$(BIN_DIR); \
@@ -245,7 +267,7 @@ $(BIN_DIR)/static-%.$(EXE_EXT) : $$(call objofmod,%) \
 
 .SECONDEXPANSION :
 $(BIN_DIR)/dynamic-%.$(EXE_EXT) : $$(call objofmod,%) \
-		$(foreach MOD,$(call reverse,$(MODULES)), \
+		$(foreach MOD,$(call reverse,$(MODULES)) $(SUBMODULE), \
 			$(ROOT)/$(BIN_DIR)/$(MOD).$(DYN_EXT))
 	@$(if $(filter $*,$(MAINS)), \
 		mkdir -p $(ROOT)/$(BIN_DIR); \
@@ -270,13 +292,19 @@ $(LIB_DIR)/lib%.a : $$(call objofmod,%)
 		printf "'$*' is not in MODULES\n")
 
 all : FORCE
+	@$(MAKE) $(LIB_DIR)/lib$(SUBMODULE).a
+	@$(MAKE) $(BIN_DIR)/$(SUBMODULE).$(DYN_EXT)
 	@$(foreach MOD,$(MODULES), \
 		$(MAKE) $(LIB_DIR)/lib$(MOD).a; \
 		$(MAKE) $(INC_DIR)/$(MOD); \
 		$(MAKE) $(BIN_DIR)/$(MOD).$(DYN_EXT);)
+	@$(foreach PLUG,$(PLUGINS), \
+		$(MAKE) $(BIN_DIR)/$(PLUG).$(DYN_EXT);)
 	@$(foreach MAIN,$(MAINS), \
-		$(MAKE) $(BIN_DIR)/static-$(MAIN).$(EXE_EXT); \
-		$(MAKE) $(BIN_DIR)/dynamic-$(MAIN).$(EXE_EXT);)
+		$(if $(filter static,$(MODES)), \
+			$(MAKE) $(BIN_DIR)/static-$(MAIN).$(EXE_EXT);) \
+		$(if $(filter dynamic,$(MODES)), \
+			$(MAKE) $(BIN_DIR)/dynamic-$(MAIN).$(EXE_EXT);))
 	@$(MAKE) $(DOC_DIR)
 
 # Read the docs!
@@ -290,15 +318,15 @@ DATCPY = $(if $(wildcard $(ROOT)/$(DAT_DIR)), \
 test : all
 	$(DATCPY)
 	@echo "== BEGIN TESTING =="
-	@$(foreach SD,static dynamic, \
+	@$(foreach MODE,$(MODES), \
 		$(foreach T,$(TEST), \
 		   $(foreach INPUT, \
 					$(if $(wildcard $(ROOT)/$(TST_DIR)/$(T)/*), \
 						$(wildcard $(ROOT)/$(TST_DIR)/$(T)/*), \
 						/dev/null), \
 				echo && \
-				echo "== $(SD)-$(T) < $(notdir $(INPUT)) ==" && \
-				$(ROOT)/$(BIN_DIR)/$(SD)-$(T).$(EXE_EXT) < $(INPUT) && \
+				echo "== $(MODE)-$(T) < $(notdir $(INPUT)) ==" && \
+				$(ROOT)/$(BIN_DIR)/$(MODE)-$(T).$(EXE_EXT) < $(INPUT) && \
 			))) echo
 	@echo "== END TESTING =="
 
