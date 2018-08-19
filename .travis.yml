@@ -12,7 +12,8 @@ addons:
             - libxinerama-dev
             - libxcursor-dev
             - libxi-dev
-script:
+
+before_install:
     - git clone https://github.com/glfw/glfw.git
     - cd glfw
     - if grep -Inr '\s$' src include docs tests examples CMake *.md .gitattributes .gitignore; then echo Trailing whitespace found, aborting.; exit 1; fi
@@ -31,6 +32,8 @@ script:
     - make
     - sudo make install
     - cd ../../
+
+script:
     - make init
     - make all
     - make test

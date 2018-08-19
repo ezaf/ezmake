@@ -162,7 +162,7 @@ reverse = $(if $(1),$(call reverse,$(wordlist 2,$(words $(1)),$(1)))) \
 		  $(firstword $(1))
 
 # File extension substitute (abstraction of patsubst)
-extsubst = $(patsubst %.$(firstword $(1)),%.$(2), \
+extsubst = $(patsubst %.$(firstword $(1)),%.$(strip $(2)), \
 		   $(if $(filter-out $(firstword $(1)), $(1)), \
 		       $(call extsubst,$(filter-out $(firstword $(1)),$(1)), \
 			       $(2),$(3)), \
@@ -287,7 +287,7 @@ $(INC_DIR)/% : $$(call incofmod,%)
 
 .SECONDEXPANSION :
 $(LIB_DIR)/lib%.a : $$(call objofmod,%)
-	@$(if $(filter $*,$(MODULES)), \
+	@$(if $(filter $*,$(MODULES) $(SUBMODULE)), \
 		mkdir -p $(ROOT)/$(LIB_DIR); \
 			printf "ar rcs $(ROOT)/$@ $?\n"; \
 			ar rcs $(ROOT)/$@ $?;, \
@@ -390,7 +390,7 @@ open : FORCE
 	vim -O $(filter $(foreach EXT,$(INC_EXTS) $(SRC_EXTS),%$(EXT)), \
 			$(if $(M), \
 				$(wildcard $(ROOT)/$(SRC_DIR)/$(M)/$(F).*), \
-				$(foreach DIR,$(MODULES) $(MAINS), \
+				$(foreach DIR,$(MODULES) $(PLUGINS) $(MAINS), \
 					$(wildcard $(ROOT)/$(SRC_DIR)/$(DIR)/$(F).*))))
 
 # Usage example: `make module M=game_engine F=window`
