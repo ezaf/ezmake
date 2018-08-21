@@ -318,7 +318,7 @@ rtd : $(DOC_DIR)
 DATCPY = $(if $(wildcard $(ROOT)/$(DAT_DIR)), \
 		 cp -r -u $(ROOT)/$(DAT_DIR) $(ROOT)/$(BIN_DIR))
 
-test : all
+test :
 	$(DATCPY)
 	@echo "== BEGIN TESTING =="
 	@$(foreach MODE,$(MODES), \
@@ -336,7 +336,7 @@ test : all
 RUNEXESTA = $(ROOT)/$(BIN_DIR)/static-$(RUN).$(EXE_EXT)
 RUNEXEDYN = $(ROOT)/$(BIN_DIR)/dynamic-$(RUN).$(EXE_EXT)
 
-run : all
+run :
 	$(DATCPY)
 	@bash -c "if [[ -x \"$(RUNEXEDYN)\" ]]; then \
 		echo \"$(RUNEXEDYN)\" && \
