@@ -45,7 +45,7 @@ SRC_DIR = src
 TST_DIR = test
 
 # Name of submodule library
-SUBMODULE = submodule
+SUBMODULE = EzMake_submodules
 
 # Source subdirecties and files
 SRC_SUBDIRS_MAIN = $(foreach DIR,$(MAINS),$(SRC_DIR)/$(DIR))
@@ -318,7 +318,7 @@ rtd : $(DOC_DIR)
 DATCPY = $(if $(wildcard $(ROOT)/$(DAT_DIR)), \
 		 cp -r -u $(ROOT)/$(DAT_DIR) $(ROOT)/$(BIN_DIR))
 
-test :
+test : FORCE
 	$(DATCPY)
 	@echo "== BEGIN TESTING =="
 	@$(foreach MODE,$(MODES), \
@@ -327,16 +327,23 @@ test :
 					$(if $(wildcard $(ROOT)/$(TST_DIR)/$(T)/*), \
 						$(wildcard $(ROOT)/$(TST_DIR)/$(T)/*), \
 						/dev/null), \
-				echo && \
-				echo "== $(MODE)-$(T) < $(notdir $(INPUT)) ==" && \
-				$(ROOT)/$(BIN_DIR)/$(MODE)-$(T).$(EXE_EXT) < $(INPUT) && \
+				if [ -f $(INPUT) ]; then \
+					echo; \
+					$(if $(filter true,$(TEST_INPUT_IS_ARG)), \
+						echo "== $(MODE)-$(T) $$(cat $(INPUT)) =="; \
+						$(ROOT)/$(BIN_DIR)/$(MODE)-$(T).$(EXE_EXT) \
+							$$(cat $(INPUT));, \
+						echo "== $(MODE)-$(T) < $(notdir $(INPUT)) =="; \
+						$(ROOT)/$(BIN_DIR)/$(MODE)-$(T).$(EXE_EXT) \
+							< $(INPUT);) \
+				fi; \
 			))) echo
 	@echo "== END TESTING =="
 
 RUNEXESTA = $(ROOT)/$(BIN_DIR)/static-$(RUN).$(EXE_EXT)
 RUNEXEDYN = $(ROOT)/$(BIN_DIR)/dynamic-$(RUN).$(EXE_EXT)
 
-run :
+run : FORCE
 	$(DATCPY)
 	@bash -c "if [[ -x \"$(RUNEXEDYN)\" ]]; then \
 		echo \"$(RUNEXEDYN)\" && \

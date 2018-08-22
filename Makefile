@@ -38,6 +38,10 @@ MAINS = test_hello main_chat test_opengl
 # Name of the application(s) you want to test when you call `make test`.
 TEST = test_hello main_chat #test_opengl
 
+# Specifies whether the test input files should be interpreted as command line
+# arguments or as program user input.
+TEST_INPUT_IS_ARG = false
+
 # Name of the application (singular!) you want to run when you call `make run`.
 RUN = test_opengl
 
