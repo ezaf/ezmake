@@ -64,6 +64,10 @@ SUB_SUBDIRS =
 # individual source files here (including the file extension).
 SUB_FILES =
 
+# What the built submodule library will be named. Does not affect the code at
+# all, it is just what the shared object and library file will be named.
+SUBMODULE =
+
 
 
 ###############################################################################
