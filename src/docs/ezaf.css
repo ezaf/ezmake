@@ -67,6 +67,12 @@ a.codeRef, a.codeRef:visited, a.lineRef, a.lineRef:visited {
 	color: #68c;
 }
 
+.contents .dyncontent img {
+	background-color: #aaa;
+	border: 12px solid #aaa;
+	border-radius: 4px;
+}
+
 .contents a:visited {
 	color: #68c;
 }
