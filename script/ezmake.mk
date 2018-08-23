@@ -45,7 +45,9 @@ SRC_DIR = src
 TST_DIR = test
 
 # Name of submodule library
-$(if $(SUBMODULE),,SUBMODULE = EzMake_submodules)
+ifeq (,$(SUBMODULE))
+	SUBMODULE = EzMake_submodules
+endif
 
 # Source subdirecties and files
 SRC_SUBDIRS_MAIN = $(foreach DIR,$(MAINS),$(SRC_DIR)/$(DIR))
