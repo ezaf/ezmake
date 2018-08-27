@@ -328,6 +328,10 @@ rtd : $(DOC_DIR)
 	$(OPEN) $(ROOT)/$(DOC_DIR)/index.html
 	@#$(OPEN) $(ROOT)/$(DOC_DIR)/refman.pdf
 
+ifeq (,$(MODE))
+	MODE = none
+endif
+
 test : FORCE
 	$(DATCPY)
 	@echo "== BEGIN TESTING =="
@@ -339,19 +343,28 @@ test : FORCE
 						/dev/null), \
 				if [ -f $(INPUT) ]; then \
 					echo; \
-					$(if $(filter true,$(TEST_INPUT_IS_ARG)), \
-						echo "== $(MODE)-$(T) $$(cat $(INPUT)) =="; \
-						$(ROOT)/$(BIN_DIR)/$(MODE)-$(T).$(EXE_EXT) \
-							$$(cat $(INPUT));, \
-						echo "== $(MODE)-$(T) < $(notdir $(INPUT)) =="; \
-						$(ROOT)/$(BIN_DIR)/$(MODE)-$(T).$(EXE_EXT) \
-							< $(INPUT);) \
+					$(if $(filter none,$()), \
+						$(if $(filter true,$(TEST_INPUT_IS_ARG)), \
+							echo "== $(T) $$(cat $(INPUT)) =="; \
+							$(ROOT)/$(BIN_DIR)/$(T).$(EXE_EXT) \
+								$$(cat $(INPUT));, \
+							echo "== $(T) < $(notdir $(INPUT)) =="; \
+							$(ROOT)/$(BIN_DIR)/$(T).$(EXE_EXT) \
+								< $(INPUT);), \
+						$(if $(filter true,$(TEST_INPUT_IS_ARG)), \
+							echo "== $(MODE)-$(T) $$(cat $(INPUT)) =="; \
+							$(ROOT)/$(BIN_DIR)/$(MODE)-$(T).$(EXE_EXT) \
+								$$(cat $(INPUT));, \
+							echo "== $(MODE)-$(T) < $(notdir $(INPUT)) =="; \
+							$(ROOT)/$(BIN_DIR)/$(MODE)-$(T).$(EXE_EXT) \
+								< $(INPUT);)) \
 				fi; \
 			))) echo
 	@echo "== END TESTING =="
 
 RUNEXESTA = $(ROOT)/$(BIN_DIR)/static-$(RUN).$(EXE_EXT)
 RUNEXEDYN = $(ROOT)/$(BIN_DIR)/dynamic-$(RUN).$(EXE_EXT)
+RUNEXENON = $(ROOT)/$(BIN_DIR)/$(RUN).$(EXE_EXT)
 
 run : FORCE
 	$(DATCPY)
@@ -361,6 +374,9 @@ run : FORCE
 	elif [[ -x \"$(RUNEXESTA)\" ]]; then \
 		echo \"$(RUNEXESTA)\" && \
 		$(RUNEXESTA); \
+	elif [[ -x \"$(RUNEXENON)\" ]]; then \
+		echo \"$(RUNEXENON)\" && \
+		$(RUNEXENON); \
 	else \
 		echo \"Could not find \\\"$(RUNEXESTA)\\\" or \\\"$(RUNEXEDYN)\\\"\"; \
 	fi"
