@@ -74,14 +74,13 @@ SRC_FILES_ALL = $(foreach EXT,$(SRC_EXTS), \
 						$(wildcard $(DIR)/*.$(EXT)))) \
 				$(SUB_FILES)
 
-# Source subdirecties and files
-INC_SUBDIRS_ALL = $(foreach DIR,$(SRC_SUBDIRS_ALL), \
-					  $(patsubst ./$(SRC_DIR)/%,./$(INC_DIR)%,$(FILE)))
+# Include subdirecties and files
 INC_FILES_ALL = $(foreach EXT,$(INC_EXTS), \
 					$(foreach DIR,$(SRC_SUBDIRS_ALL), \
 						$(wildcard $(DIR)/*.$(EXT))))
 INC_DESTS_ALL = $(foreach FILE,$(INC_FILES_ALL), \
-					$(patsubst ./$(SRC_DIR)/%,./$(INC_DIR)%,$(FILE)))
+					$(patsubst $(ROOT)/$(SRC_DIR)/%,$(ROOT)/$(INC_DIR)/%, \
+						$(ROOT)/$(FILE)))
 DOC_FILES_ALL = $(wildcard $(ROOT)/$(SRC_DIR)/$(DOC_DIR)/*)
 
 # Include and library flags
@@ -237,6 +236,9 @@ $(INC_DIR) : $(INC_FILES_ALL)
 		printf "$(MAKE) $@/$(DIR)\n"; \
 		$(MAKE) $@/$(DIR);)
 
+LIB_DESTS_ALL = $(foreach MOD,$(MODULES) $(SUBMODULE), \
+					$(ROOT)/$(LIB_DIR)/lib$(MOD).a)
+
 $(LIB_DIR) : FORCE
 	@$(foreach MOD,$(MODULES), \
 		printf "$(MAKE) $@/lib$(MOD).a\n"; \
@@ -245,6 +247,11 @@ $(LIB_DIR) : FORCE
 $(SUB_DIR) : FORCE
 	mkdir -p $(ROOT)/$@
 	git submodule update --init --remote --force
+
+BIN_DESTS_ALL = $(foreach MPS,$(MODULES) $(PLUGINS) $(SUBMODULE), \
+					$(ROOT)/$(BIN_DIR)/$(MPS).$(DYN_EXT)) \
+				$(foreach MAIN,$(MAINS),$(foreach MODE,$(MODES), \
+					$(ROOT)/$(BIN_DIR)/$(MODE)-$(MAIN).$(EXE_EXT)))
 
 .SECONDEXPANSION :
 $(BIN_DIR)/%.$(DYN_EXT) : $$(call objofmod,%)
@@ -361,10 +368,16 @@ clean-% : FORCE
 	$(if $(findstring $(patsubst clean-%,%,$@),$(DAT_DIR) $(TST_DIR)), \
 		@printf "I doubt you want to clean '$(ROOT)/$(patsubst clean-%,%,$@)'. \
 Do it manually if you *really* want to.\n", \
-		$(if $(findstring $(patsubst clean-%,%,$@),$(SRC_DIR)), \
-			find $(ROOT)/$(SRC_DIR) -type f \
-				\( -name "*.o" -or -name "*.d" -or -name "*.d.*" \) -delete, \
-			rm -rf $(patsubst clean-%,%,$@)))
+	$(if $(findstring $(patsubst clean-%,%,$@),$(SRC_DIR)), \
+		find $(ROOT)/$(SRC_DIR) -type f \
+			\( -name "*.o" -or -name "*.d" -or -name "*.d.*" \) -delete, \
+	$(if $(findstring $(patsubst clean-%,%,$@),$(BIN_DIR)), \
+		rm -rf $(ROOT)/$(BIN_DIR)/$(DAT_DIR) $(BIN_DESTS_ALL), \
+	$(if $(findstring $(patsubst clean-%,%,$@),$(INC_DIR)), \
+		rm -rf $(INC_DESTS_ALL), \
+	$(if $(findstring $(patsubst clean-%,%,$@),$(LIB_DIR)), \
+		rm -rf $(LIB_DESTS_ALL), \
+	rm -rf $(patsubst clean-%,%,$@))))))
 
 clean : FORCE
 	@$(MAKE) clean-$(BIN_DIR)

@@ -128,3 +128,4 @@ init : FORCE
 FORCE :
 
 -include $(ROOT)/$(SUB_DIR)/ezmake/script/ezmake.mk
+-include $(ROOT)/script/ezmake.mk
