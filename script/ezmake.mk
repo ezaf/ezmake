@@ -302,6 +302,9 @@ $(LIB_DIR)/lib%.a : $$(call objofmod,%)
 			ar rcs $(ROOT)/$@ $?;, \
 		printf "'$*' is not in MODULES\n")
 
+DATCPY = $(if $(wildcard $(ROOT)/$(DAT_DIR)), \
+		 cp -r -u $(ROOT)/$(DAT_DIR) $(ROOT)/$(BIN_DIR))
+
 all : FORCE
 	@$(if $(strip $(SUB_FILES)), \
 		$(MAKE) $(LIB_DIR)/lib$(SUBMODULE).a; \
@@ -317,15 +320,13 @@ all : FORCE
 			$(MAKE) $(BIN_DIR)/static-$(MAIN).$(EXE_EXT);) \
 		$(if $(filter dynamic,$(MODES)), \
 			$(MAKE) $(BIN_DIR)/dynamic-$(MAIN).$(EXE_EXT);))
+	$(DATCPY)
 	@$(MAKE) $(DOC_DIR)
 
 # Read the docs!
 rtd : $(DOC_DIR)
 	$(OPEN) $(ROOT)/$(DOC_DIR)/index.html
 	@#$(OPEN) $(ROOT)/$(DOC_DIR)/refman.pdf
-
-DATCPY = $(if $(wildcard $(ROOT)/$(DAT_DIR)), \
-		 cp -r -u $(ROOT)/$(DAT_DIR) $(ROOT)/$(BIN_DIR))
 
 test : FORCE
 	$(DATCPY)
