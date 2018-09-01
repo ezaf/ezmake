@@ -128,10 +128,9 @@ ifneq (, $(shell uname -s | grep -E Darwin))
 	# TODO: flesh out build system for MacOS
 endif
 
-# Figure out compile and run targets based on compiler
-# TODO: When adding multiple-projects compiling, change COMPILE's RUNs
-ifeq ($(CC), emcc)
+ifeq ($(CC),emcc)
 	CF += --preload-file $(ROOT)/$(DAT_DIR)
+	LF += -ldl
 	ifneq (,$(findstring sdl2, $(PKGS)))
 		LF += -s USE_SDL=2
 	endif
@@ -145,14 +144,11 @@ ifeq ($(CC), emcc)
 		LF += -s USE_SDL_NET=2
 	endif
 
-	COMPILE = \
-		$(foreach DIR,$(SRC_SUBDIRS_MAIN), \
-			$(CC) $(CF) -I$(ROOT)/$(SRC_DIR)/$(DIR) \
-			$(foreach EXT,$(SRC_EXTS), \
-				$(wildcard $(ROOT)/$(SRC_DIR)/$(DIR)/*.$(EXT)) ) \
-			$(LF) -o $(ROOT)/$(EMC_DIR)/$(MAIN).html && ) $(NULL)
+	CF_MAIN = -s MAIN_MODULE=1
+	CF_SIDE = -s SIDE_MODULE=1
 
-	RUN_CALL = $(OPEN) $(ROOT)/$(EMC_DIR)/$(RUN).html
+	DYN_EXT = js
+	EXE_EXT = html
 endif
 
 MAKE = make --no-print-directory
@@ -257,8 +253,8 @@ BIN_DESTS_ALL = $(foreach MPS,$(MODULES) $(PLUGINS) $(SUBMODULE), \
 $(BIN_DIR)/%.$(DYN_EXT) : $$(call objofmod,%)
 	@$(if $(filter $*,$(MODULES) $(PLUGINS) $(SUBMODULE)), \
 		mkdir -p $(ROOT)/$(BIN_DIR); \
-			printf "$(CC) $(CF) -shared $^ $(LF) -o $(ROOT)/$@\n"; \
-			$(CC) $(CF) -shared $^ $(LF) \
+			printf "$(CC) $(CF) $(CF_SIDE) -shared $^ $(LF) -o $(ROOT)/$@\n"; \
+			$(CC) $(CF) $(CF_SIDE) -shared $^ $(LF) \
 				$(filter-out $(ROOT)/$@, \
 					$(wildcard $(ROOT)/$(BIN_DIR)/*.$(DYN_EXT))) \
 				-o $(ROOT)/$@, \
@@ -271,8 +267,8 @@ $(BIN_DIR)/static-%.$(EXE_EXT) : $$(call objofmod,%) \
 			$(ROOT)/$(LIB_DIR)/lib$(MOD).a)
 	@$(if $(filter $*,$(MAINS)), \
 		mkdir -p $(ROOT)/$(BIN_DIR); \
-			printf "$(CC) $(CF) $^ $(LF) -o $(ROOT)/$@\n"; \
-			$(CC) $(CF) $^ $(LF) -o $(ROOT)/$@, \
+			printf "$(CC) $(CF) $(CF_MAIN) $^ $(LF) -o $(ROOT)/$@\n"; \
+			$(CC) $(CF) $(CF_MAIN) $^ $(LF) -o $(ROOT)/$@, \
 		printf "'$*' is not in MAINS\n")
 
 .SECONDEXPANSION :
@@ -282,8 +278,8 @@ $(BIN_DIR)/dynamic-%.$(EXE_EXT) : $$(call objofmod,%) \
 			$(ROOT)/$(BIN_DIR)/$(MOD).$(DYN_EXT))
 	@$(if $(filter $*,$(MAINS)), \
 		mkdir -p $(ROOT)/$(BIN_DIR); \
-			printf "$(CC) $(CF) $^ $(LF) -o $(ROOT)/$@\n"; \
-			$(CC) $(CF) $^ $(LF) -o $(ROOT)/$@, \
+			printf "$(CC) $(CF) $(CF_MAIN) $^ $(LF) -o $(ROOT)/$@\n"; \
+			$(CC) $(CF) $(CF_MAIN) $^ $(LF) -o $(ROOT)/$@, \
 		printf "'$*' is not in MAINS\n")
 
 .SECONDEXPANSION :
@@ -307,10 +303,10 @@ DATCPY = $(if $(wildcard $(ROOT)/$(DAT_DIR)), \
 
 all : FORCE
 	@$(if $(strip $(SUB_FILES)), \
-		$(MAKE) $(LIB_DIR)/lib$(SUBMODULE).a; \
+		$(if $(filter emcc,$(CC)),,$(MAKE) $(LIB_DIR)/lib$(SUBMODULE).a;) \
 		$(MAKE) $(BIN_DIR)/$(SUBMODULE).$(DYN_EXT))
 	@$(foreach MOD,$(MODULES), \
-		$(MAKE) $(LIB_DIR)/lib$(MOD).a; \
+		$(if $(filter emcc,$(CC)),,$(MAKE) $(LIB_DIR)/lib$(MOD).a;) \
 		$(MAKE) $(INC_DIR)/$(MOD); \
 		$(MAKE) $(BIN_DIR)/$(MOD).$(DYN_EXT);)
 	@$(foreach PLUG,$(PLUGINS), \
@@ -364,19 +360,23 @@ test : FORCE
 
 RUNEXESTA = $(ROOT)/$(BIN_DIR)/static-$(RUN).$(EXE_EXT)
 RUNEXEDYN = $(ROOT)/$(BIN_DIR)/dynamic-$(RUN).$(EXE_EXT)
-RUNEXENON = $(ROOT)/$(BIN_DIR)/$(RUN).$(EXE_EXT)
+RUNEMHTML = $(NULL)
+ifeq (emcc,$(CC))
+	RUNEMHTML = $(OPEN) $(ROOT)/$(EMC_DIR)/$(RUN).html
+endif
 
 run : FORCE
 	$(DATCPY)
-	@bash -c "if [[ -x \"$(RUNEXEDYN)\" ]]; then \
+	@bash -c "\
+	if [[ -x \"$(RUNEMHTML)\" ]]; then \
+		echo \"$(RUNEMHTML)\" && \
+		$(RUNEMHTML); \
+	elif [[ -x \"$(RUNEXEDYN)\" ]]; then \
 		echo \"$(RUNEXEDYN)\" && \
 		$(RUNEXEDYN); \
 	elif [[ -x \"$(RUNEXESTA)\" ]]; then \
 		echo \"$(RUNEXESTA)\" && \
 		$(RUNEXESTA); \
-	elif [[ -x \"$(RUNEXENON)\" ]]; then \
-		echo \"$(RUNEXENON)\" && \
-		$(RUNEXENON); \
 	else \
 		echo \"Could not find \\\"$(RUNEXESTA)\\\" or \\\"$(RUNEXEDYN)\\\"\"; \
 	fi"
@@ -386,7 +386,7 @@ clean-% : FORCE
 		@printf "I doubt you want to clean '$(ROOT)/$(patsubst clean-%,%,$@)'. \
 Do it manually if you *really* want to.\n", \
 	$(if $(findstring $(patsubst clean-%,%,$@),$(SRC_DIR)), \
-		find $(ROOT)/$(SRC_DIR) -type f \
+		find $(ROOT) -type f \
 			\( -name "*.o" -or -name "*.d" -or -name "*.d.*" \) -delete, \
 	$(if $(findstring $(patsubst clean-%,%,$@),$(BIN_DIR)), \
 		rm -rf $(ROOT)/$(BIN_DIR)/$(DAT_DIR) $(BIN_DESTS_ALL), \
