@@ -26,14 +26,14 @@
 
 # Directories within ./src of your library code.
 # Each subdirectory gets built into its own shared library/object.
-MODULES = ezhello ezgoodbye ezboth glad
+MODULES = ezhello ezgoodbye ezboth #glad
 
 # Similar to MODULES, except PLUGINS are not part of the core application and
 # must be dynamically loaded via a shared object (.dll, .so, etc)
 PLUGINS = #AnimatedSprite
 
 # Directories within ./src of the apps and tests that you want to build.
-MAINS = test_hello main_chat test_opengl
+MAINS = test_hello main_chat #test_opengl
 
 # Name of the application(s) you want to test when you call `make test`.
 TEST = test_hello main_chat #test_opengl
@@ -43,7 +43,7 @@ TEST = test_hello main_chat #test_opengl
 TEST_INPUT_IS_ARG = false
 
 # Name of the application (singular!) you want to run when you call `make run`.
-RUN = test_opengl
+RUN = main_chat
 
 # When building all, choose whether to build dynamic and/or static mains
 # EZSDL: For some reason statically built mains have trouble loading plugins
@@ -54,7 +54,7 @@ MODES = dynamic static
 # `-l$(PKG)` will be added to the build instead, for each PKG in PKGS and for
 # each PREFIX in PREFIXES. These are CASE SENSITIVE! Double check the correct
 # case for your library. Commented out are examples.
-PKGS = glfw3 #gtk+-3.0 sdl2 SDL2_image
+PKGS = #glfw3 gtk+-3.0 sdl2 SDL2_image
 
 # Needed submodule include and/or source directories within ./sub
 SUB_SUBDIRS =
@@ -83,7 +83,7 @@ CC = gcc
 # EzMake is that we assume all tests/mains use the same compiler flags. If this
 # becomes a big enough issue, this will be amended in a future version.
 CF = -std=c11 -O3 -w
-LF = -lglfw3 # pkg-config not finding glfw3 on travis-ci
+LF = #-lglfw3 # pkg-config not finding glfw3 on travis-ci
 
 # Include file extensions you want moved to ./include
 INC_EXTS = h hpp
